@@ -7,6 +7,8 @@ import (
 	"banner-service/internal/utils/responser"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"io"
 	"net/http"
@@ -22,7 +24,7 @@ func NewBannerHandler(s banner.BannerService, logger *logrus.Logger) *BannerHand
 	return &BannerHandler{s, logger}
 }
 
-// TODO: поправить обработку ошибок
+// TODO: сделать нормальную обработку ошибок в соответсвии с api и нормальное вывод логгера
 
 func (h *BannerHandler) GetBanner(w http.ResponseWriter, r *http.Request) {
 	h.logger.Info("get banner")
@@ -139,12 +141,19 @@ func (h *BannerHandler) AddBanner(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	b := &models.Banner{}
+	b := &models.BannerPayload{}
 	err = json.Unmarshal(body, b)
+
+	if err != nil {
+		h.logger.Error("error in unmarshall")
+		responser.WriteStatus(w, http.StatusBadRequest)
+		return
+	}
 
 	bannerId, err := h.service.AddBanner(r.Context(), b)
 	if err != nil {
 		responser.WriteStatus(w, http.StatusInternalServerError)
+		h.logger.Error(err)
 		return
 	}
 
@@ -156,9 +165,67 @@ func (h *BannerHandler) AddBanner(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *BannerHandler) UpdateBanner(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	idStr, ok := vars["id"]
+	if !ok || idStr == "" {
+		h.logger.Error("id is empty")
+		responser.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid request"))
+		return
+	}
 
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		h.logger.Error("id is invalid", err)
+		responser.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid request"))
+		return
+	}
+
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		responser.WriteStatus(w, http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	b := &models.BannerPayload{}
+	err = json.Unmarshal(body, b)
+
+	if err != nil {
+		h.logger.Error("error in unmarshall")
+		responser.WriteStatus(w, http.StatusBadRequest)
+		return
+	}
+
+	err = h.service.UpdateBanner(r.Context(), id, b)
+	if err != nil {
+		responser.WriteStatus(w, http.StatusInternalServerError)
+		h.logger.Error(err)
+		return
+	}
+
+	responser.WriteStatus(w, http.StatusOK)
 }
 
 func (h *BannerHandler) DeleteBanner(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	idStr, ok := vars["id"]
+	if !ok || idStr == "" {
+		h.logger.Error("id is empty")
+		responser.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid request"))
+		return
+	}
 
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		h.logger.Error("id is invalid", err)
+		responser.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid request"))
+		return
+	}
+
+	err = h.service.DeleteBanner(r.Context(), id)
+	if err != nil {
+
+	}
+
+	responser.WriteStatus(w, http.StatusNoContent)
 }

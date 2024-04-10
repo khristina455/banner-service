@@ -5,6 +5,7 @@ import (
 	"banner-service/internal/pkg/banner"
 	"banner-service/internal/pkg/cache"
 	"context"
+	"fmt"
 	"strconv"
 )
 
@@ -45,14 +46,28 @@ func (bs *BannerService) GetFilterBanners(ctx context.Context, tagId, featureId,
 	return banners, nil
 }
 
-func (bs *BannerService) AddBanner(ctx context.Context, banner *models.Banner) (int, error) {
-	return 0, nil
+func (bs *BannerService) AddBanner(ctx context.Context, banner *models.BannerPayload) (int, error) {
+	if banner.Content == nil || !banner.IsActive.HasValue || banner.TagIds == nil || banner.FeatureId == 0 {
+		return 0, fmt.Errorf("incorrect data")
+	}
+
+	bannerId, err := bs.repo.CreateBanner(ctx, banner)
+
+	if err != nil {
+		return 0, err
+	}
+	return bannerId, nil
 }
 
-func (bs *BannerService) UpdateBanners(ctx context.Context) {
-
+func (bs *BannerService) UpdateBanner(ctx context.Context, id int, banner *models.BannerPayload) error {
+	err := bs.repo.UpdateBanner(ctx, id, banner)
+	return err
 }
 
-func (bs *BannerService) DeleteBanners(ctx context.Context) {
-
+func (bs *BannerService) DeleteBanner(ctx context.Context, id int) error {
+	err := bs.repo.DeleteBanner(ctx, id)
+	if err != nil {
+		return err
+	}
+	return nil
 }
