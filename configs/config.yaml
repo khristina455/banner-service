@@ -1,0 +1,8 @@
+http_server:
+  address: "localhost:8083"
+postgres:
+  db_name: "bannerDB"
+  db_pass: "2304"
+  db_host: "localhost"
+  db_port: 5432
+  db_user: "postgres"
