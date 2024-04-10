@@ -6,10 +6,12 @@ import (
 	"banner-service/internal/pkg/banner/service"
 	"banner-service/internal/pkg/cache"
 	"banner-service/internal/pkg/config"
+	"banner-service/internal/utils/jwter"
 	"context"
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/redis/go-redis/v9"
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"os"
@@ -52,10 +54,18 @@ func (a *App) Run() error {
 		a.logger.Fatalln(err)
 		return err
 	}
-	rc := cache.NewRedisClient()
+
+	rc := redis.NewClient(&redis.Options{
+		Addr:     cfg.RedisAddr,
+		Password: cfg.RedisPassword,
+		DB:       cfg.DB,
+	})
+	defer rc.Close()
+
+	cacheClient := cache.NewRedisClient(rc)
 
 	bannerRepo := repository.NewBannerRepository(db)
-	bannerService := service.NewBannerService(bannerRepo, rc)
+	bannerService := service.NewBannerService(bannerRepo, cacheClient)
 	bannerHandler := bannerHandler.NewBannerHandler(bannerService, a.logger)
 
 	r := mux.NewRouter().PathPrefix("/api").Subrouter()
@@ -73,6 +83,8 @@ func (a *App) Run() error {
 		IdleTimeout:       cfg.IdleTimeout,
 		ReadHeaderTimeout: cfg.ReadHeaderTimeout,
 	}
+
+	jwter.LoadSecret(cfg.JWTSecret)
 
 	quit := make(chan os.Signal, 1)
 

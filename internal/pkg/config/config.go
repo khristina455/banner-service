@@ -11,6 +11,7 @@ import (
 type Config struct {
 	HTTPServerConfig `yaml:"http_server"`
 	PostgresConfig   `yaml:"postgres"`
+	RedisConfig      `yaml:"redis"`
 }
 
 type HTTPServerConfig struct {
@@ -18,6 +19,7 @@ type HTTPServerConfig struct {
 	Timeout           time.Duration `yaml:"timeout" yaml-default:"4s"`
 	IdleTimeout       time.Duration `yaml:"idleTimeout" yaml-default:"60s"`
 	ReadHeaderTimeout time.Duration `yaml:"readHeaderTimeout" yaml-defualt:"10s"`
+	JWTSecret         string        `yaml:"JWTSecret"`
 }
 
 type RedisConfig struct {

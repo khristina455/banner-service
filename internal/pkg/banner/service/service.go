@@ -24,7 +24,7 @@ func (bs *BannerService) GetUserBanner(ctx context.Context, tagId, featureId int
 	key := strconv.Itoa(tagId) + "-" + strconv.Itoa(featureId)
 
 	if !useLastRevision {
-		banner, ok = cache.Get(key)
+		banner, ok = bs.cache.Get(ctx, key)
 	}
 
 	if !ok {
@@ -32,7 +32,7 @@ func (bs *BannerService) GetUserBanner(ctx context.Context, tagId, featureId int
 		if err != nil {
 			return nil, err
 		}
-		cache.Set(key, banner)
+		bs.cache.Set(key, banner)
 		return banner, nil
 	}
 	return banner, nil
