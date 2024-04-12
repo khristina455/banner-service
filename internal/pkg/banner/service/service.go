@@ -18,12 +18,14 @@ func NewBannerService(repo banner.BannerRepository, cache *cache.RedisClient) *B
 	return &BannerService{repo: repo, cache: cache}
 }
 
-func (bs *BannerService) GetUserBanner(ctx context.Context, tagId, featureId int, useLastRevision bool) ([]byte, error) {
+// TODO:решить вопрос с флагом активности
+
+func (bs *BannerService) GetBanner(ctx context.Context, tagId, featureId int, useLastRevision bool, isAdmin bool) ([]byte, error) {
 	var banner []byte
 	ok := false
 	key := strconv.Itoa(tagId) + "-" + strconv.Itoa(featureId)
 
-	if !useLastRevision {
+	if !useLastRevision && bs.cache != nil {
 		banner, ok = bs.cache.Get(ctx, key)
 	}
 
@@ -32,7 +34,7 @@ func (bs *BannerService) GetUserBanner(ctx context.Context, tagId, featureId int
 		if err != nil {
 			return nil, err
 		}
-		bs.cache.Set(key, banner)
+		// bs.cache.Set(key, banner)
 		return banner, nil
 	}
 	return banner, nil

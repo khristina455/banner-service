@@ -1,11 +1,15 @@
 package app
 
 import (
+	authHandler "banner-service/internal/pkg/auth/http"
+	authRepository "banner-service/internal/pkg/auth/repository"
+	authService "banner-service/internal/pkg/auth/sevice"
 	bannerHandler "banner-service/internal/pkg/banner/http"
-	"banner-service/internal/pkg/banner/repository"
-	"banner-service/internal/pkg/banner/service"
+	bannerRepository "banner-service/internal/pkg/banner/repository"
+	bannerService "banner-service/internal/pkg/banner/service"
 	"banner-service/internal/pkg/cache"
 	"banner-service/internal/pkg/config"
+	"banner-service/internal/pkg/middleware"
 	"banner-service/internal/utils/jwter"
 	"context"
 	"fmt"
@@ -35,7 +39,6 @@ func (a *App) Run() error {
 		a.logger.Fatalln(err)
 	}
 
-	a.logger.Println(cfg.DBPort)
 	db, err := pgxpool.New(context.Background(), fmt.Sprintf("postgres://%v:%v@%v:%v/%v?sslmode=disable",
 		cfg.DBUser,
 		cfg.DBPass,
@@ -45,13 +48,13 @@ func (a *App) Run() error {
 
 	if err != nil {
 		err = fmt.Errorf("error happened in sql.Open: %w", err)
-		a.logger.Fatalln(err)
+		a.logger.Error(err)
 		return err
 	}
 	defer db.Close()
 
 	if err = db.Ping(context.Background()); err != nil {
-		a.logger.Fatalln(err)
+		a.logger.Error(err)
 		return err
 	}
 
@@ -64,16 +67,22 @@ func (a *App) Run() error {
 
 	cacheClient := cache.NewRedisClient(rc)
 
-	bannerRepo := repository.NewBannerRepository(db)
-	bannerService := service.NewBannerService(bannerRepo, cacheClient)
+	bannerRepo := bannerRepository.NewBannerRepository(db)
+	bannerService := bannerService.NewBannerService(bannerRepo, cacheClient)
 	bannerHandler := bannerHandler.NewBannerHandler(bannerService, a.logger)
 
+	authRepo := authRepository.NewAuthRepository(db)
+	authService := authService.NewAuthService(authRepo)
+	authHandler := authHandler.NewAuthHandler(authService, a.logger)
+
 	r := mux.NewRouter().PathPrefix("/api").Subrouter()
-	r.HandleFunc("/user_banner", bannerHandler.GetBanner).Methods("GET")
-	r.HandleFunc("/banner", bannerHandler.GetBannerList).Methods("GET")
-	r.HandleFunc("/banner", bannerHandler.AddBanner).Methods("POST")
-	r.HandleFunc("/banner/{id:[0-9]+}", bannerHandler.UpdateBanner).Methods("PATCH")
-	r.HandleFunc("/banner/{id:[0-9]+}", bannerHandler.DeleteBanner).Methods("DELETE")
+	r.Handle("/user_banner", middleware.Auth(a.logger, false, http.HandlerFunc(bannerHandler.GetBanner))).Methods("GET")
+	r.Handle("/banner", middleware.Auth(a.logger, true, http.HandlerFunc(bannerHandler.GetBannerList))).Methods("GET")
+	r.Handle("/banner", middleware.Auth(a.logger, true, http.HandlerFunc(bannerHandler.AddBanner))).Methods("POST")
+	r.Handle("/banner/{id:[0-9]+}", middleware.Auth(a.logger, true, http.HandlerFunc(bannerHandler.UpdateBanner))).Methods("PATCH")
+	r.Handle("/banner/{id:[0-9]+}", middleware.Auth(a.logger, true, http.HandlerFunc(bannerHandler.DeleteBanner))).Methods("DELETE")
+	r.HandleFunc("/sign_in", authHandler.SignIn).Methods("POST")
+	r.HandleFunc("/sign_up", authHandler.SignUp).Methods("POST")
 
 	srv := http.Server{
 		Handler:           r,
@@ -107,7 +116,6 @@ func (a *App) Run() error {
 	if err = srv.Shutdown(ctx); err != nil {
 		a.logger.Error("server shutdown returned an err: ", err)
 		err = fmt.Errorf("error happened in srv.Shutdown: %w", err)
-
 		return err
 	}
 

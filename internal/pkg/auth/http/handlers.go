@@ -39,7 +39,7 @@ func (ah *AuthHandler) SignIn(w http.ResponseWriter, r *http.Request) {
 
 	err = ah.service.SignIn(r.Context(), u)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println(err, " service")
 		responser.WriteStatus(w, http.StatusInternalServerError)
 		return
 	}
@@ -50,7 +50,7 @@ func (ah *AuthHandler) SignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.SetCookie(w, &http.Cookie{Name: "AccessToken", Value: "Bearer " + token})
+	http.SetCookie(w, &http.Cookie{Name: "AccessToken", Value: token})
 	responser.WriteStatus(w, http.StatusOK)
 }
 
@@ -84,6 +84,6 @@ func (ah *AuthHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.SetCookie(w, &http.Cookie{Name: "AccessToken", Value: "Bearer " + token})
+	http.SetCookie(w, &http.Cookie{Name: "AccessToken", Value: token})
 	responser.WriteStatus(w, http.StatusOK)
 }

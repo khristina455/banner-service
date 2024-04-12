@@ -16,8 +16,12 @@ CREATE TABLE IF NOT EXISTS banner(
 
 CREATE TABLE IF NOT EXISTS "user"(
     user_id    SERIAL PRIMARY KEY,
-    login      VARCHAR(32) NOT NULL,
+    login      VARCHAR(32) UNIQUE  NOT NULL,
     password   VARCHAR(32) NOT NULL,
     is_admin   BOOLEAN DEFAULT FALSE,
     tag_id     INT
 );
+
+
+CREATE INDEX index_banner
+ON banner(banner_id);

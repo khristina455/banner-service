@@ -22,7 +22,8 @@ var TokenManagerSingletone *Manager
 
 func LoadSecret(signingKey string) error {
 	if signingKey == "" {
-		return errors.New("empty signing key")
+		//return errors.New("empty signing key")
+		signingKey = "kdkfkjelrug737gb"
 	}
 
 	TokenManagerSingletone = &Manager{signingKey: signingKey}
@@ -35,7 +36,7 @@ func (m *Manager) GenerateJWT(user *models.User) (string, error) {
 		IsAdmin: user.IsAdmin,
 		TagId:   user.TagId,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Minute * 60).Unix(),
+			ExpiresAt: time.Now().Add(time.Hour * 60).Unix(),
 		},
 	}
 
@@ -53,7 +54,7 @@ func (m *Manager) ParseJWT(accessToken string) (map[string]interface{}, error) {
 	claims := jwt.MapClaims{}
 
 	token, err := jwt.ParseWithClaims(accessToken, claims, func(token *jwt.Token) (jwtKey interface{}, err error) {
-		return jwtKey, err
+		return []byte(m.signingKey), err
 	})
 
 	if err != nil {

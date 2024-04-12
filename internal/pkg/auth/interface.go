@@ -7,7 +7,7 @@ import (
 
 type AuthRepository interface {
 	CreateUser(context.Context, *models.User) (int, error)
-	GetUserByLogin(context.Context, string) (*models.User, error)
+	ReadUserByLogin(context.Context, string) (models.User, error)
 }
 
 type AuthService interface {

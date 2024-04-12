@@ -18,12 +18,15 @@ func NewAuthService(repo auth.AuthRepository) *AuthService {
 }
 
 func (as *AuthService) SignIn(ctx context.Context, user *models.User) error {
-	u, err := as.repo.GetUserByLogin(ctx, user.Login)
+	u, err := as.repo.ReadUserByLogin(ctx, user.Login)
 	if err != nil {
 		return err
 	}
 
 	if u.Password == user.Password {
+		user.UserId = u.UserId
+		user.IsAdmin = u.IsAdmin
+		user.TagId = u.TagId
 		return nil
 	}
 

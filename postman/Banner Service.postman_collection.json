@@ -1,0 +1,169 @@
+{
+	"info": {
+		"_postman_id": "b563260f-729c-4304-aeb5-7df4a22ef674",
+		"name": "Banner Service",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "31565984"
+	},
+	"item": [
+		{
+			"name": "Get user banner",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Cookie",
+						"value": "AccessToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJpc19hZG1pbiI6ZmFsc2UsInRhZ19pZCI6MiwiZXhwIjoxNzEyODUzNTUwfQ.7qhRTyOW7XDjsxZKoJ6QJIXPyRsKUwDeo8aAwR7SriY",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseURL}}/user_banner?tag_id=2&feature_id=1",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"user_banner"
+					],
+					"query": [
+						{
+							"key": "tag_id",
+							"value": "2"
+						},
+						{
+							"key": "feature_id",
+							"value": "1"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get banners",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseURL}}/banner/1000019",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"banner",
+						"1000019"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add banner",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/api/banner",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"api",
+						"banner"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update banner",
+			"request": {
+				"method": "PATCH",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "Delete banner",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/banner/18",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"banner",
+						"18"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Sign in",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"login\": \"just_user\", \"password\": \"12345\"}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8083/api/sign_in",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8083",
+					"path": [
+						"api",
+						"sign_in"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Sign up",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/sign_up",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"sign_up"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "baseURL",
+			"value": "http://localhost:8083/api"
+		}
+	]
+}

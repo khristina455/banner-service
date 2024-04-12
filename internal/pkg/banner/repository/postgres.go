@@ -13,7 +13,7 @@ import (
 
 const (
 	getBannerIdByTagFeature = `SELECT banner_id FROM banner_tag_feature WHERE tag_id=$1 AND feature_id=$2;`
-	getBannerIdsByTag       = `SELECT banner_id FROM banner_tag_feature WHERE tag_id=$1`
+	getBannerIdsByTag       = `SELECT DISTINCT banner_id FROM banner_tag_feature WHERE tag_id=$1`
 	getBannerIdsByFeature   = `SELECT banner_id FROM banner_tag_feature WHERE feature_id=$1`
 	getAllBannerIds         = `SELECT banner_id FROM banner_tag_feature`
 	getBannerContentById    = `SELECT content FROM banner WHERE banner_id=$1 AND is_active=TRUE;`

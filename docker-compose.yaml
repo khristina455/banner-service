@@ -1,0 +1,32 @@
+version: "3.8"
+services:
+  banner-service:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    ports:
+       - "8080:8083"
+    depends_on:
+       - postgres
+    restart: on-failure
+  postgres:
+    image: postgres:15
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - ./db_data:/var/lib/postgresql/data
+      - ./migrations/init.sql:/docker-entrypoint-initdb.d/initdb.sql
+    ports:
+      - "5433:5432"
+  redis:
+      image: redis:6.2-alpine
+      restart: always
+      ports:
+        - '6379:6379'
+      command: redis-server --save 20 1 --loglevel warning --requirepass password
+      volumes:
+        - redis-data:/data
