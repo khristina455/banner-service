@@ -1,9 +1,11 @@
 http_server:
-  address: "localhost:8083"
+  address: "banner-service:8080"
 postgres:
   db_name: "bannerDB"
-  db_pass: "2304"
-  db_host: "localhost"
+  db_pass: "12345"
+  db_host: "postgres"
   db_port: 5432
-  db_user: "postgres"
+  db_user: "root"
 redis:
+  address: "cache:6379"
+  cache_pass: "67890"

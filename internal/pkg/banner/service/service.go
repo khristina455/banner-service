@@ -29,13 +29,27 @@ func (bs *BannerService) GetBanner(ctx context.Context, tagId, featureId int, us
 		banner, ok = bs.cache.Get(ctx, key)
 	}
 
-	if !ok {
+	if isAdmin {
 		banner, err := bs.repo.ReadBanner(ctx, tagId, featureId)
 		if err != nil {
 			return nil, err
 		}
-		// bs.cache.Set(key, banner)
+
+		if bs.cache != nil {
+			bs.cache.Set(key, banner)
+		}
 		return banner, nil
+	}
+
+	if !ok {
+		banner, err := bs.repo.ReadUserBanner(ctx, tagId, featureId)
+		if err != nil {
+			return nil, err
+		}
+
+		if bs.cache != nil {
+			bs.cache.Set(key, banner)
+		}
 	}
 	return banner, nil
 }

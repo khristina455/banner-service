@@ -44,7 +44,7 @@ func (ah *AuthHandler) SignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := jwter.TokenManagerSingletone.GenerateJWT(u)
+	token, err := jwter.TokenManagerSingleton.GenerateJWT(u)
 	if err != nil {
 		responser.WriteStatus(w, http.StatusInternalServerError)
 		return
@@ -78,7 +78,7 @@ func (ah *AuthHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := jwter.TokenManagerSingletone.GenerateJWT(u)
+	token, err := jwter.TokenManagerSingleton.GenerateJWT(u)
 	if err != nil {
 		responser.WriteStatus(w, http.StatusInternalServerError)
 		return

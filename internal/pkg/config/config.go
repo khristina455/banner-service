@@ -23,8 +23,8 @@ type HTTPServerConfig struct {
 }
 
 type RedisConfig struct {
-	RedisAddr     string
-	RedisPassword string
+	RedisAddr     string `yaml:"address"`
+	RedisPassword string `yaml:"cache_pas"`
 	RedisDB       string
 	DB            int
 }

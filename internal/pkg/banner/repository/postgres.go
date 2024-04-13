@@ -12,20 +12,21 @@ import (
 )
 
 const (
-	getBannerIdByTagFeature = `SELECT banner_id FROM banner_tag_feature WHERE tag_id=$1 AND feature_id=$2;`
-	getBannerIdsByTag       = `SELECT DISTINCT banner_id FROM banner_tag_feature WHERE tag_id=$1`
-	getBannerIdsByFeature   = `SELECT banner_id FROM banner_tag_feature WHERE feature_id=$1`
-	getAllBannerIds         = `SELECT banner_id FROM banner_tag_feature`
-	getBannerContentById    = `SELECT content FROM banner WHERE banner_id=$1 AND is_active=TRUE;`
-	getBannerById           = `SELECT content, is_active, created_at, updated_at FROM banner WHERE banner_id=$1;`
-	getFeatureForBanner     = `SELECT feature_id FROM banner_tag_feature WHERE banner_id=$1;`
-	getTagsForBanner        = `SELECT tag_id FROM banner_tag_feature WHERE banner_id=$1;`
-	createBanner            = `INSERT INTO banner(content, is_active) VALUES ($1, $2) RETURNING banner_id;`
-	createFeatureAndTag     = `INSERT INTO banner_tag_feature(banner_id, tag_id, feature_id) VALUES ($1, $2, $3);`
-	updateBanner            = `UPDATE banner SET content = COALESCE($1, content),
-                			   is_active= COALESCE($2, is_active), 
-                               updated_at = now() 
-					           WHERE banner_id = $3;`
+	getBannerIdByTagFeature    = `SELECT banner_id FROM banner_tag_feature WHERE tag_id=$1 AND feature_id=$2;`
+	getBannerIdsByTag          = `SELECT DISTINCT banner_id FROM banner_tag_feature WHERE tag_id=$1`
+	getBannerIdsByFeature      = `SELECT banner_id FROM banner_tag_feature WHERE feature_id=$1`
+	getAllBannerIds            = `SELECT banner_id FROM banner_tag_feature`
+	getActiveBannerContentById = `SELECT content FROM banner WHERE banner_id=$1 AND is_active=TRUE;`
+	getBannerContentById       = `SELECT content FROM banner WHERE banner_id=$1;`
+	getBannerById              = `SELECT content, is_active, created_at, updated_at FROM banner WHERE banner_id=$1;`
+	getFeatureForBanner        = `SELECT feature_id FROM banner_tag_feature WHERE banner_id=$1;`
+	getTagsForBanner           = `SELECT tag_id FROM banner_tag_feature WHERE banner_id=$1;`
+	createBanner               = `INSERT INTO banner(content, is_active) VALUES ($1, $2) RETURNING banner_id;`
+	createFeatureAndTag        = `INSERT INTO banner_tag_feature(banner_id, tag_id, feature_id) VALUES ($1, $2, $3);`
+	updateBanner               = `UPDATE banner SET content = COALESCE($1, content),
+                			         is_active= COALESCE($2, is_active), 
+                                     updated_at = now() 
+					                 WHERE banner_id = $3;`
 	deleteBanner = `DELETE FROM banner WHERE banner_id=$1;`
 )
 
@@ -42,6 +43,28 @@ func NewBannerRepository(db *pgxpool.Pool) *BannerRepository {
 }
 
 // TODO:вынести взятие тэгов в отдельную функцию
+
+func (br *BannerRepository) ReadUserBanner(ctx context.Context, tagId, featureId int) ([]byte, error) {
+	var bannerId int
+	if err := br.db.QueryRow(ctx, getBannerIdByTagFeature, tagId, featureId).
+		Scan(&bannerId); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrBannerNotFound
+		}
+		return []byte{}, err
+	}
+
+	var b []byte
+	if err := br.db.QueryRow(ctx, getActiveBannerContentById, bannerId).
+		Scan(&b); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrBannerNotFound
+		}
+		return []byte{}, err
+	}
+
+	return b, nil
+}
 
 func (br *BannerRepository) ReadBanner(ctx context.Context, tagId, featureId int) ([]byte, error) {
 	var bannerId int
@@ -113,7 +136,6 @@ func (br *BannerRepository) ReadFilterBanners(ctx context.Context, tagId, featur
 
 		if err := br.db.QueryRow(ctx, getBannerById, bannerId).
 			Scan(&banner.Content, &banner.IsActive, &banner.CreatedAt, &banner.UpdatedAt); err != nil {
-			fmt.Println("error here", getBannerById, bannerId)
 			continue
 		}
 
@@ -157,7 +179,6 @@ func (br *BannerRepository) CreateBanner(ctx context.Context, banner *models.Ban
 	}
 
 	for _, val := range banner.TagIds {
-		fmt.Println(val, banner.FeatureId)
 		_, err = br.db.Exec(ctx, createFeatureAndTag, bannerId, val, banner.FeatureId)
 		if err != nil {
 			return 0, err
@@ -176,6 +197,10 @@ func (br *BannerRepository) UpdateBanner(ctx context.Context, id int, banner *mo
 		_, err = br.db.Exec(ctx, updateBanner, banner.Content, banner.IsActive.IsTrue, id)
 	}
 
+	if err != nil {
+		return ErrBannerNotFound
+	}
+
 	if banner.FeatureId != 0 && banner.TagIds != nil {
 
 	} else if banner.FeatureId != 0 {
@@ -183,11 +208,14 @@ func (br *BannerRepository) UpdateBanner(ctx context.Context, id int, banner *mo
 	} else if banner.TagIds != nil {
 
 	}
-
 	return err
 }
 
 func (br *BannerRepository) DeleteBanner(ctx context.Context, id int) error {
 	_, err := br.db.Exec(ctx, deleteBanner, id)
-	return err
+	if err != nil {
+		return ErrBannerNotFound
+	}
+
+	return nil
 }

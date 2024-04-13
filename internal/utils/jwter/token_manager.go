@@ -18,7 +18,9 @@ type Manager struct {
 	signingKey string
 }
 
-var TokenManagerSingletone *Manager
+// TODO:избавиться от синглтона
+
+var TokenManagerSingleton *Manager
 
 func LoadSecret(signingKey string) error {
 	if signingKey == "" {
@@ -26,7 +28,7 @@ func LoadSecret(signingKey string) error {
 		signingKey = "kdkfkjelrug737gb"
 	}
 
-	TokenManagerSingletone = &Manager{signingKey: signingKey}
+	TokenManagerSingleton = &Manager{signingKey: signingKey}
 	return nil
 }
 

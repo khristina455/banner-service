@@ -26,7 +26,7 @@ func Auth(log *logrus.Logger, onlyAdmin bool, next http.Handler) http.Handler {
 			}
 		}
 
-		claims, err := jwter.TokenManagerSingletone.ParseJWT(tokenCookie.Value)
+		claims, err := jwter.TokenManagerSingleton.ParseJWT(tokenCookie.Value)
 		if err != nil {
 			log.Error("jws token is invalid auth ", err)
 			responser.WriteStatus(w, http.StatusUnauthorized)

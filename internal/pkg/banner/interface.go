@@ -15,6 +15,7 @@ type BannerService interface {
 
 type BannerRepository interface {
 	ReadBanner(ctx context.Context, tagId, featureId int) ([]byte, error)
+	ReadUserBanner(ctx context.Context, tagId, featureId int) ([]byte, error)
 	ReadFilterBanners(ctx context.Context, tagId, featureId, limit, offset int) ([]models.Banner, error)
 	CreateBanner(ctx context.Context, banner *models.BannerPayload) (int, error)
 	UpdateBanner(ctx context.Context, id int, banner *models.BannerPayload) error

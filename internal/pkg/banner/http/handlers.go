@@ -125,8 +125,6 @@ func (h *BannerHandler) GetBannerList(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	h.logger.Info(tagId, featureId, limit, offset)
-
 	banners, err := h.service.GetFilterBanners(r.Context(), tagId, featureId, limit, offset)
 	if err != nil {
 		h.logger.Error("failed to get banners ", err)
@@ -178,18 +176,20 @@ func (h *BannerHandler) AddBanner(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *BannerHandler) UpdateBanner(w http.ResponseWriter, r *http.Request) {
+	h.logger.Info("update banner handler")
+
 	vars := mux.Vars(r)
 	idStr, ok := vars["id"]
 	if !ok || idStr == "" {
 		h.logger.Error("id is empty")
-		responser.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid request"))
+		responser.WriteError(w, http.StatusBadRequest, fmt.Errorf("empty id in request"))
 		return
 	}
 
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		h.logger.Error("id is invalid", err)
-		responser.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid request"))
+		h.logger.Error("id is incorrect ", err)
+		responser.WriteError(w, http.StatusBadRequest, fmt.Errorf("incorrect id in request"))
 		return
 	}
 
@@ -211,8 +211,12 @@ func (h *BannerHandler) UpdateBanner(w http.ResponseWriter, r *http.Request) {
 
 	err = h.service.UpdateBanner(r.Context(), id, b)
 	if err != nil {
-		responser.WriteStatus(w, http.StatusInternalServerError)
-		h.logger.Error(err)
+		h.logger.Error("failed to update banner ", err)
+		if errors.Is(err, repository.ErrBannerNotFound) {
+			responser.WriteStatus(w, http.StatusNotFound)
+			return
+		}
+		responser.WriteError(w, http.StatusInternalServerError, fmt.Errorf("failed to update banner"))
 		return
 	}
 
@@ -224,20 +228,26 @@ func (h *BannerHandler) DeleteBanner(w http.ResponseWriter, r *http.Request) {
 	idStr, ok := vars["id"]
 	if !ok || idStr == "" {
 		h.logger.Error("id is empty")
-		responser.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid request"))
+		responser.WriteError(w, http.StatusBadRequest, fmt.Errorf("empty id in request"))
 		return
 	}
 
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		h.logger.Error("id is invalid", err)
-		responser.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid request"))
+		h.logger.Error("id is incorrect")
+		responser.WriteError(w, http.StatusBadRequest, fmt.Errorf("incorrectif in  request"))
 		return
 	}
 
 	err = h.service.DeleteBanner(r.Context(), id)
 	if err != nil {
-
+		h.logger.Error("failed to delete banner ", err)
+		if errors.Is(err, repository.ErrBannerNotFound) {
+			responser.WriteStatus(w, http.StatusNotFound)
+			return
+		}
+		responser.WriteError(w, http.StatusInternalServerError, fmt.Errorf("failed to delete banner"))
+		return
 	}
 
 	responser.WriteStatus(w, http.StatusNoContent)

@@ -1,17 +1,17 @@
+CREATE TABLE IF NOT EXISTS banner(
+                                     banner_id  SERIAL PRIMARY KEY,
+                                     content    BYTEA NOT NULL,
+                                     is_active  BOOLEAN DEFAULT FALSE,
+                                     created_at TIMESTAMP DEFAULT NOW(),
+                                     updated_at TIMESTAMP DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS banner_tag_feature(
     banner_id INT,
     tag_id INT,
     feature_id INT,
     FOREIGN KEY (banner_id) REFERENCES banner(banner_id) ON DELETE CASCADE,
     CONSTRAINT PK_TagFeature PRIMARY KEY (tag_id, feature_id)
-);
-
-CREATE TABLE IF NOT EXISTS banner(
-    banner_id  SERIAL PRIMARY KEY,
-    content    BYTEA NOT NULL,
-    is_active  BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS "user"(
@@ -25,3 +25,5 @@ CREATE TABLE IF NOT EXISTS "user"(
 
 CREATE INDEX index_banner
 ON banner(banner_id);
+
+--создать еще индексы
