@@ -1,19 +1,21 @@
 package tests
 
 import (
-	bannerHandler "banner-service/internal/pkg/banner/http"
-	bannerRepository "banner-service/internal/pkg/banner/repository"
-	bannerService "banner-service/internal/pkg/banner/service"
-	"banner-service/tests/db"
 	"context"
 	"fmt"
-	"github.com/google/go-cmp/cmp"
-	"github.com/sirupsen/logrus"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
+
+	"github.com/google/go-cmp/cmp"
+	"github.com/sirupsen/logrus"
+
+	bannerHandler "banner-service/internal/pkg/banner/http"
+	bannerRepository "banner-service/internal/pkg/banner/repository"
+	bannerService "banner-service/internal/pkg/banner/service"
+	"banner-service/tests/db"
 )
 
 func Test_getUserBanner(t *testing.T) {
@@ -42,37 +44,37 @@ func Test_getUserBanner(t *testing.T) {
 
 	tests := []struct {
 		Name            string
-		TagId           int
-		FeatureId       int
+		TagID           int
+		FeatureID       int
 		IsAdmin         bool
-		UserTagId       int
+		UserTagID       int
 		ExpectedContent []byte
 		ExpectedCode    int
 	}{
 		{
 			Name:            "OK for user",
-			TagId:           1,
-			FeatureId:       1,
+			TagID:           1,
+			FeatureID:       1,
 			IsAdmin:         false,
-			UserTagId:       1,
+			UserTagID:       1,
 			ExpectedContent: expectedBanners[0].Content,
 			ExpectedCode:    http.StatusOK,
 		},
 		{
 			Name:            "OK for admin",
-			TagId:           2,
-			FeatureId:       2,
+			TagID:           2,
+			FeatureID:       2,
 			IsAdmin:         true,
-			UserTagId:       0,
+			UserTagID:       0,
 			ExpectedContent: expectedBanners[1].Content,
 			ExpectedCode:    http.StatusOK,
 		},
 		{
 			Name:            "Forbidden",
-			TagId:           3,
-			FeatureId:       3,
+			TagID:           3,
+			FeatureID:       3,
 			IsAdmin:         false,
-			UserTagId:       2,
+			UserTagID:       2,
 			ExpectedContent: []byte{},
 			ExpectedCode:    http.StatusForbidden,
 		},
@@ -80,9 +82,10 @@ func Test_getUserBanner(t *testing.T) {
 
 	for _, test := range tests {
 		fn := func(t *testing.T) {
-			req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/user_banner?tag_id=%d&feature_id=%d", test.TagId, test.FeatureId), nil)
+			req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/user_banner?tag_id=%d&feature_id=%d",
+				test.TagID, test.FeatureID), nil)
 			ctx := context.WithValue(req.Context(), "is_admin", test.IsAdmin)
-			ctx = context.WithValue(ctx, "tag_id", test.UserTagId)
+			ctx = context.WithValue(ctx, "tag_id", test.UserTagID)
 			req = req.WithContext(ctx)
 			if err != nil {
 				t.Errorf("error creating request: %v", err)

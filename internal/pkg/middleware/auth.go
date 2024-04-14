@@ -1,13 +1,15 @@
 package middleware
 
 import (
-	"banner-service/internal/utils/jwter"
-	"banner-service/internal/utils/responser"
 	"context"
 	"errors"
-	"github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
+
+	"github.com/sirupsen/logrus"
+
+	"banner-service/internal/utils/jwter"
+	"banner-service/internal/utils/responser"
 )
 
 func Auth(log *logrus.Logger, onlyAdmin bool, next http.Handler) http.Handler {
@@ -38,11 +40,12 @@ func Auth(log *logrus.Logger, onlyAdmin bool, next http.Handler) http.Handler {
 			return
 		}
 
-		tagIdStr := r.URL.Query().Get("tag_id")
-		if tagIdStr != "" && !claims["is_admin"].(bool) {
-			tagId, err := strconv.Atoi(tagIdStr)
+		var tagID int
+		tagIDStr := r.URL.Query().Get("tag_id")
+		if tagIDStr != "" && !claims["is_admin"].(bool) {
+			tagID, err = strconv.Atoi(tagIDStr)
 			if err == nil {
-				if tagId != int(claims["tag_id"].(float64)) {
+				if tagID != int(claims["tag_id"].(float64)) {
 					responser.WriteStatus(w, http.StatusForbidden)
 					return
 				}

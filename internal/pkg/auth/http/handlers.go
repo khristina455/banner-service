@@ -1,15 +1,16 @@
 package http
 
 import (
+	"encoding/json"
+	"io"
+	"net/http"
+
+	"github.com/sirupsen/logrus"
+
 	"banner-service/internal/models"
 	"banner-service/internal/pkg/auth"
 	"banner-service/internal/utils/jwter"
 	"banner-service/internal/utils/responser"
-	"encoding/json"
-	"fmt"
-	"github.com/sirupsen/logrus"
-	"io"
-	"net/http"
 )
 
 type AuthHandler struct {
@@ -39,7 +40,6 @@ func (ah *AuthHandler) SignIn(w http.ResponseWriter, r *http.Request) {
 
 	err = ah.service.SignIn(r.Context(), u)
 	if err != nil {
-		fmt.Println(err, " service")
 		responser.WriteStatus(w, http.StatusInternalServerError)
 		return
 	}
@@ -55,7 +55,6 @@ func (ah *AuthHandler) SignIn(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ah *AuthHandler) SignUp(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("signup")
 	body, err := io.ReadAll(r.Body)
 
 	if err != nil {
@@ -71,9 +70,8 @@ func (ah *AuthHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	u.UserId, err = ah.service.SignUp(r.Context(), u)
+	u.UserID, err = ah.service.SignUp(r.Context(), u)
 	if err != nil {
-		fmt.Println(err)
 		responser.WriteStatus(w, http.StatusInternalServerError)
 		return
 	}

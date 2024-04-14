@@ -1,10 +1,12 @@
 package db
 
 import (
-	"banner-service/internal/models"
 	"context"
 	"fmt"
+
 	"github.com/jackc/pgx/v5/pgxpool"
+
+	"banner-service/internal/models"
 )
 
 const (
@@ -101,48 +103,52 @@ func SeedBanners(dbc *pgxpool.Pool) ([]models.Banner, error) {
 		{
 			Content:   []byte(`{"content": "content of banner 1"}`),
 			IsActive:  true,
-			TagIds:    []int{1},
-			FeatureId: 1,
+			TagIDs:    []int{1},
+			FeatureID: 1,
 		},
 		{
 			Content:   []byte(`{"content": "content of banner 2"}`),
 			IsActive:  true,
-			TagIds:    []int{2},
-			FeatureId: 2,
+			TagIDs:    []int{2},
+			FeatureID: 2,
 		},
 		{
 			Content:   []byte(`{"content": "content of banner 3"}`),
 			IsActive:  true,
-			TagIds:    []int{3},
-			FeatureId: 3,
+			TagIDs:    []int{3},
+			FeatureID: 3,
 		},
 		{
 			Content:   []byte(`{"content": "content of banner 4"}`),
 			IsActive:  true,
-			TagIds:    []int{4},
-			FeatureId: 4,
+			TagIDs:    []int{4},
+			FeatureID: 4,
 		},
 		{
 			Content:   []byte(`{"content": "content of banner 5"}`),
 			IsActive:  true,
-			TagIds:    []int{5},
-			FeatureId: 5,
+			TagIDs:    []int{5},
+			FeatureID: 5,
 		},
 		{
 			Content:   []byte(`{"content": "content of banner 6"}`),
 			IsActive:  true,
-			TagIds:    []int{6},
-			FeatureId: 6,
+			TagIDs:    []int{6},
+			FeatureID: 6,
 		},
 	}
 
 	for i := range banners {
-		err := dbc.QueryRow(context.Background(), `INSERT INTO banner(content, is_active) VALUES ($1, $2) RETURNING banner_id;`, banners[i].Content, banners[i].IsActive).Scan(&banners[i].BannerId)
+		err := dbc.QueryRow(context.Background(),
+			`INSERT INTO banner(content, is_active) VALUES ($1, $2) RETURNING banner_id;`,
+			banners[i].Content, banners[i].IsActive).Scan(&banners[i].BannerID)
 		if err != nil {
 			return nil, fmt.Errorf("prepare list insertion")
 		}
 
-		_, err = dbc.Exec(context.Background(), `INSERT INTO banner_tag_feature(banner_id, tag_id, feature_id) VALUES ($1, $2, $3) RETURNING banner_id;`, banners[i].BannerId, banners[i].TagIds[0], banners[i].FeatureId)
+		_, err = dbc.Exec(context.Background(),
+			`INSERT INTO banner_tag_feature(banner_id, tag_id, feature_id) VALUES ($1, $2, $3) RETURNING banner_id;`,
+			banners[i].BannerID, banners[i].TagIDs[0], banners[i].FeatureID)
 		if err != nil {
 			return nil, fmt.Errorf("prepare list insertion")
 		}

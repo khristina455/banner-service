@@ -1,16 +1,18 @@
 package jwter
 
 import (
-	"banner-service/internal/models"
 	"errors"
-	"github.com/dgrijalva/jwt-go"
 	"time"
+
+	"github.com/dgrijalva/jwt-go"
+
+	"banner-service/internal/models"
 )
 
 type Claims struct {
-	UserId  int  `json:"user_id"`
+	UserID  int  `json:"user_id"`
 	IsAdmin bool `json:"is_admin"`
-	TagId   int  `json:"tag_id"`
+	TagID   int  `json:"tag_id"`
 	jwt.StandardClaims
 }
 
@@ -24,8 +26,7 @@ var TokenManagerSingleton *Manager
 
 func LoadSecret(signingKey string) error {
 	if signingKey == "" {
-		//return errors.New("empty signing key")
-		signingKey = "kdkfkjelrug737gb"
+		return errors.New("empty signing key")
 	}
 
 	TokenManagerSingleton = &Manager{signingKey: signingKey}
@@ -34,9 +35,9 @@ func LoadSecret(signingKey string) error {
 
 func (m *Manager) GenerateJWT(user *models.User) (string, error) {
 	claims := &Claims{
-		UserId:  user.UserId,
+		UserID:  user.UserID,
 		IsAdmin: user.IsAdmin,
-		TagId:   user.TagId,
+		TagID:   user.TagID,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Hour * 60).Unix(),
 		},

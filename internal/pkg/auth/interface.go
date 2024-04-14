@@ -5,7 +5,7 @@ import (
 	"context"
 )
 
-type AuthRepository interface {
+type Repository interface {
 	CreateUser(context.Context, *models.User) (int, error)
 	ReadUserByLogin(context.Context, string) (models.User, error)
 }

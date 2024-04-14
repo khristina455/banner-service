@@ -4,14 +4,14 @@ import (
 	"banner-service/internal/models"
 	"banner-service/internal/pkg/auth"
 	"context"
-	"fmt"
+	"errors"
 )
 
 type AuthService struct {
-	repo auth.AuthRepository
+	repo auth.Repository
 }
 
-func NewAuthService(repo auth.AuthRepository) *AuthService {
+func NewAuthService(repo auth.Repository) *AuthService {
 	return &AuthService{
 		repo: repo,
 	}
@@ -24,13 +24,13 @@ func (as *AuthService) SignIn(ctx context.Context, user *models.User) error {
 	}
 
 	if u.Password == user.Password {
-		user.UserId = u.UserId
+		user.UserID = u.UserID
 		user.IsAdmin = u.IsAdmin
-		user.TagId = u.TagId
+		user.TagID = u.TagID
 		return nil
 	}
 
-	return fmt.Errorf("forbidden")
+	return errors.New("forbidden")
 }
 
 func (as *AuthService) SignUp(ctx context.Context, user *models.User) (int, error) {

@@ -1,10 +1,12 @@
 package repository
 
 import (
-	"banner-service/internal/models"
 	"context"
 	"fmt"
+
 	"github.com/jackc/pgx/v5/pgxpool"
+
+	"banner-service/internal/models"
 )
 
 const (
@@ -25,7 +27,7 @@ func NewAuthRepository(db *pgxpool.Pool) *AuthRepository {
 func (ar *AuthRepository) CreateUser(ctx context.Context, user *models.User) (int, error) {
 	var id int
 	err := ar.db.QueryRow(ctx, createUser,
-		user.Login, user.Password, user.TagId).Scan(&id)
+		user.Login, user.Password, user.TagID).Scan(&id)
 
 	if err != nil {
 		err = fmt.Errorf("error happened in scan.Scan: %w", err)
@@ -40,7 +42,7 @@ func (ar *AuthRepository) CreateUser(ctx context.Context, user *models.User) (in
 
 func (ar *AuthRepository) ReadUserByLogin(ctx context.Context, login string) (models.User, error) {
 	u := models.User{}
-	err := ar.db.QueryRow(ctx, getUserByLogin, login).Scan(&u.UserId, &u.Password, &u.IsAdmin, &u.TagId)
+	err := ar.db.QueryRow(ctx, getUserByLogin, login).Scan(&u.UserID, &u.Password, &u.IsAdmin, &u.TagID)
 
 	if err != nil {
 		err = fmt.Errorf("error happened in scan.Scan: %w", err)

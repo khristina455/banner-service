@@ -25,9 +25,9 @@ func (nullBool *NullBool) UnmarshalJSON(b []byte) error {
 }
 
 type Banner struct {
-	BannerId  int             `json:"banner_id"`
-	TagIds    []int           `json:"tag_ids"`
-	FeatureId int             `json:"feature_id"`
+	BannerID  int             `json:"banner_id"`
+	TagIDs    []int           `json:"tag_ids"`
+	FeatureID int             `json:"feature_id"`
 	Content   json.RawMessage `json:"content"`
 	IsActive  bool            `json:"is_active"`
 	CreatedAt time.Time       `json:"created_at"`
@@ -35,8 +35,8 @@ type Banner struct {
 }
 
 type BannerPayload struct {
-	TagIds    []int           `json:"tag_ids"`
-	FeatureId int             `json:"feature_id"`
+	TagIDs    []int           `json:"tag_ids"`
+	FeatureID int             `json:"feature_id"`
 	Content   json.RawMessage `json:"content"`
 	IsActive  NullBool        `json:"is_active"`
 }

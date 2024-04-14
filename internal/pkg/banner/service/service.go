@@ -5,7 +5,7 @@ import (
 	"banner-service/internal/pkg/banner"
 	"banner-service/internal/pkg/cache"
 	"context"
-	"fmt"
+	"errors"
 	"strconv"
 )
 
@@ -20,17 +20,18 @@ func NewBannerService(repo banner.BannerRepository, cache *cache.RedisClient) *B
 
 // TODO:решить вопрос с флагом активности
 
-func (bs *BannerService) GetBanner(ctx context.Context, tagId, featureId int, useLastRevision bool, isAdmin bool) ([]byte, error) {
+func (bs *BannerService) GetBanner(ctx context.Context, tagID, featureID int,
+	useLastRevision bool, isAdmin bool) ([]byte, error) {
 	var banner []byte
 	ok := false
-	key := strconv.Itoa(tagId) + "-" + strconv.Itoa(featureId)
+	key := strconv.Itoa(tagID) + "-" + strconv.Itoa(featureID)
 
 	if !useLastRevision && bs.cache != nil {
 		banner, ok = bs.cache.Get(ctx, key)
 	}
 
 	if isAdmin {
-		banner, err := bs.repo.ReadBanner(ctx, tagId, featureId)
+		banner, err := bs.repo.ReadBanner(ctx, tagID, featureID)
 		if err != nil {
 			return nil, err
 		}
@@ -42,7 +43,7 @@ func (bs *BannerService) GetBanner(ctx context.Context, tagId, featureId int, us
 	}
 
 	if !ok {
-		banner, err := bs.repo.ReadUserBanner(ctx, tagId, featureId)
+		banner, err := bs.repo.ReadUserBanner(ctx, tagID, featureID)
 		if err != nil {
 			return nil, err
 		}
@@ -54,8 +55,9 @@ func (bs *BannerService) GetBanner(ctx context.Context, tagId, featureId int, us
 	return banner, nil
 }
 
-func (bs *BannerService) GetFilterBanners(ctx context.Context, tagId, featureId, limit, offset int) ([]models.Banner, error) {
-	banners, err := bs.repo.ReadFilterBanners(ctx, tagId, featureId, limit, offset)
+func (bs *BannerService) GetFilterBanners(ctx context.Context,
+	tagID, featureID, limit, offset int) ([]models.Banner, error) {
+	banners, err := bs.repo.ReadFilterBanners(ctx, tagID, featureID, limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -63,16 +65,16 @@ func (bs *BannerService) GetFilterBanners(ctx context.Context, tagId, featureId,
 }
 
 func (bs *BannerService) AddBanner(ctx context.Context, banner *models.BannerPayload) (int, error) {
-	if banner.Content == nil || !banner.IsActive.HasValue || banner.TagIds == nil || banner.FeatureId == 0 {
-		return 0, fmt.Errorf("incorrect data")
+	if banner.Content == nil || !banner.IsActive.HasValue || banner.TagIDs == nil || banner.FeatureID == 0 {
+		return 0, errors.New("has empty fields")
 	}
 
-	bannerId, err := bs.repo.CreateBanner(ctx, banner)
+	bannerID, err := bs.repo.CreateBanner(ctx, banner)
 
 	if err != nil {
 		return 0, err
 	}
-	return bannerId, nil
+	return bannerID, nil
 }
 
 func (bs *BannerService) UpdateBanner(ctx context.Context, id int, banner *models.BannerPayload) error {
@@ -82,8 +84,5 @@ func (bs *BannerService) UpdateBanner(ctx context.Context, id int, banner *model
 
 func (bs *BannerService) DeleteBanner(ctx context.Context, id int) error {
 	err := bs.repo.DeleteBanner(ctx, id)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }

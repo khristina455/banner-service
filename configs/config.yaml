@@ -1,11 +1,16 @@
 http_server:
-  address: "banner-service:8080"
+  #address: "banner-service:8080"
+  address: "localhost:8083"
+  JWTSecret: "0L7Rh9C10L3RjCDRhdC+0YfRgyDRgyDQstCw0YEg0YDQsNCx0L7RgtCw0YLRjCk="
 postgres:
+  #db_pass: "12345"
+  #db_host: "postgres"
+  #db_user: "root"
   db_name: "bannerDB"
-  db_pass: "12345"
-  db_host: "postgres"
+  db_pass: "2304"
+  db_host: "localhost"
   db_port: 5432
-  db_user: "root"
+  db_user: "postgres"
 redis:
-  address: "cache:6379"
-  cache_pass: "67890"
+  #address: "localhost:6379"
+  #cache_pass: "67890"

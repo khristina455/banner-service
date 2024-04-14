@@ -1,6 +1,19 @@
 package app
 
 import (
+	"context"
+	"fmt"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"github.com/gorilla/mux"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/redis/go-redis/v9"
+	"github.com/sirupsen/logrus"
+
 	authHandler "banner-service/internal/pkg/auth/http"
 	authRepository "banner-service/internal/pkg/auth/repository"
 	authService "banner-service/internal/pkg/auth/sevice"
@@ -11,17 +24,6 @@ import (
 	"banner-service/internal/pkg/config"
 	"banner-service/internal/pkg/middleware"
 	"banner-service/internal/utils/jwter"
-	"context"
-	"fmt"
-	"github.com/gorilla/mux"
-	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/redis/go-redis/v9"
-	"github.com/sirupsen/logrus"
-	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
 )
 
 type App struct {
@@ -79,8 +81,10 @@ func (a *App) Run() error {
 	r.Handle("/user_banner", middleware.Auth(a.logger, false, http.HandlerFunc(bannerHandler.GetBanner))).Methods("GET")
 	r.Handle("/banner", middleware.Auth(a.logger, true, http.HandlerFunc(bannerHandler.GetBannerList))).Methods("GET")
 	r.Handle("/banner", middleware.Auth(a.logger, true, http.HandlerFunc(bannerHandler.AddBanner))).Methods("POST")
-	r.Handle("/banner/{id:[0-9]+}", middleware.Auth(a.logger, true, http.HandlerFunc(bannerHandler.UpdateBanner))).Methods("PATCH")
-	r.Handle("/banner/{id:[0-9]+}", middleware.Auth(a.logger, true, http.HandlerFunc(bannerHandler.DeleteBanner))).Methods("DELETE")
+	r.Handle("/banner/{id:[0-9]+}", middleware.Auth(a.logger, true,
+		http.HandlerFunc(bannerHandler.UpdateBanner))).Methods("PATCH")
+	r.Handle("/banner/{id:[0-9]+}", middleware.Auth(a.logger, true,
+		http.HandlerFunc(bannerHandler.DeleteBanner))).Methods("DELETE")
 	r.HandleFunc("/sign_in", authHandler.SignIn).Methods("POST")
 	r.HandleFunc("/sign_up", authHandler.SignUp).Methods("POST")
 
@@ -89,11 +93,14 @@ func (a *App) Run() error {
 		Addr:              cfg.Address,
 		ReadTimeout:       cfg.Timeout,
 		WriteTimeout:      cfg.Timeout,
-		IdleTimeout:       cfg.IdleTimeout,
+		IdleTimeout:       cfg.IDleTimeout,
 		ReadHeaderTimeout: cfg.ReadHeaderTimeout,
 	}
 
-	jwter.LoadSecret(cfg.JWTSecret)
+	err = jwter.LoadSecret(cfg.JWTSecret)
+	if err != nil {
+		a.logger.Error("error to load secret ", err)
+	}
 
 	quit := make(chan os.Signal, 1)
 

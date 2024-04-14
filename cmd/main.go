@@ -1,10 +1,11 @@
 package main
 
 import (
-	"banner-service/internal/app"
 	"time"
 
 	"github.com/sirupsen/logrus"
+
+	"banner-service/internal/app"
 )
 
 func main() {
@@ -15,7 +16,7 @@ func main() {
 	}
 	logger.SetFormatter(formatter)
 
-	app := app.NewApp(logger) //все соднанное сверху предаем сюда
+	app := app.NewApp(logger)
 
 	if err := app.Run(); err != nil {
 		logger.Fatal(err)

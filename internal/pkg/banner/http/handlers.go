@@ -1,18 +1,19 @@
 package http
 
 import (
+	"encoding/json"
+	"errors"
+	"io"
+	"net/http"
+	"strconv"
+
+	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
+
 	"banner-service/internal/models"
 	"banner-service/internal/pkg/banner"
 	"banner-service/internal/pkg/banner/repository"
 	"banner-service/internal/utils/responser"
-	"encoding/json"
-	"errors"
-	"fmt"
-	"github.com/gorilla/mux"
-	"github.com/sirupsen/logrus"
-	"io"
-	"net/http"
-	"strconv"
 )
 
 type BannerHandler struct {
@@ -24,30 +25,28 @@ func NewBannerHandler(s banner.BannerService, logger *logrus.Logger) *BannerHand
 	return &BannerHandler{s, logger}
 }
 
-// TODO: сделать нормальную обработку ошибок в соответсвии с api и нормальное вывод логгера
-
 func (h *BannerHandler) GetBanner(w http.ResponseWriter, r *http.Request) {
 	h.logger.Info("get banner handler")
 
-	tagIdStr := r.URL.Query().Get("tag_id")
-	tagId, err := strconv.Atoi(tagIdStr)
+	tagIDStr := r.URL.Query().Get("tag_id")
+	tagID, err := strconv.Atoi(tagIDStr)
 	if err != nil {
 		h.logger.Error("incorrect tag id ", err)
-		responser.WriteError(w, http.StatusBadRequest, fmt.Errorf("incorrect tag id"))
+		responser.WriteError(w, http.StatusBadRequest, errors.New("incorrect tag id"))
 		return
 	}
 
-	if !r.Context().Value("is_admin").(bool) && tagId != r.Context().Value("tag_id") {
+	if !r.Context().Value("is_admin").(bool) && tagID != r.Context().Value("tag_id") {
 		h.logger.Error("this tag id forbidden")
 		responser.WriteStatus(w, http.StatusForbidden)
 		return
 	}
 
-	featureIdStr := r.URL.Query().Get("feature_id")
-	featureId, err := strconv.Atoi(featureIdStr)
+	featureIDStr := r.URL.Query().Get("feature_id")
+	featureID, err := strconv.Atoi(featureIDStr)
 	if err != nil {
 		h.logger.Error("incorrect feature id ", err)
-		responser.WriteError(w, http.StatusBadRequest, fmt.Errorf("incorrect feature id"))
+		responser.WriteError(w, http.StatusBadRequest, errors.New("incorrect feature id"))
 		return
 	}
 
@@ -57,12 +56,13 @@ func (h *BannerHandler) GetBanner(w http.ResponseWriter, r *http.Request) {
 		useLastRevision, err = strconv.ParseBool(useLastRevisionStr)
 		if err != nil {
 			h.logger.Error("incorrect use last revision ", err)
-			responser.WriteError(w, http.StatusBadRequest, fmt.Errorf("incorrect use last revision"))
+			responser.WriteError(w, http.StatusBadRequest, errors.New("incorrect use last revision"))
 			return
 		}
 	}
 
-	banner, err := h.service.GetBanner(r.Context(), tagId, featureId, useLastRevision, r.Context().Value("is_admin").(bool))
+	banner, err := h.service.GetBanner(r.Context(), tagID, featureID, useLastRevision,
+		r.Context().Value("is_admin").(bool))
 	if err != nil {
 		h.logger.Error("failed to get banner ", err)
 		if errors.Is(err, repository.ErrBannerNotFound) {
@@ -81,24 +81,24 @@ func (h *BannerHandler) GetBannerList(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
-	tagIdStr := r.URL.Query().Get("tag_id")
-	tagId := 0
-	if tagIdStr != "" {
-		tagId, err = strconv.Atoi(tagIdStr)
+	tagIDStr := r.URL.Query().Get("tag_id")
+	tagID := 0
+	if tagIDStr != "" {
+		tagID, err = strconv.Atoi(tagIDStr)
 		if err != nil {
-			h.logger.Error("incorrect tag id ", err, tagIdStr)
-			responser.WriteError(w, http.StatusBadRequest, fmt.Errorf("incorrect tag id"))
+			h.logger.Error("incorrect tag id ", err, tagIDStr)
+			responser.WriteError(w, http.StatusBadRequest, errors.New("incorrect tag id"))
 			return
 		}
 	}
 
-	featureIdStr := r.URL.Query().Get("feature_id")
-	featureId := 0
-	if tagIdStr != "" {
-		featureId, err = strconv.Atoi(featureIdStr)
+	featureIDStr := r.URL.Query().Get("feature_id")
+	featureID := 0
+	if tagIDStr != "" {
+		featureID, err = strconv.Atoi(featureIDStr)
 		if err != nil {
 			h.logger.Error("incorrect feature id ", err)
-			responser.WriteError(w, http.StatusBadRequest, fmt.Errorf("incorrect feature id"))
+			responser.WriteError(w, http.StatusBadRequest, errors.New("incorrect feature id"))
 			return
 		}
 	}
@@ -109,7 +109,7 @@ func (h *BannerHandler) GetBannerList(w http.ResponseWriter, r *http.Request) {
 		limit, err = strconv.Atoi(limitStr)
 		if err != nil {
 			h.logger.Error("incorrect limit ", err)
-			responser.WriteError(w, http.StatusBadRequest, fmt.Errorf("incorrect limit"))
+			responser.WriteError(w, http.StatusBadRequest, errors.New("incorrect limit"))
 			return
 		}
 	}
@@ -120,12 +120,12 @@ func (h *BannerHandler) GetBannerList(w http.ResponseWriter, r *http.Request) {
 		offset, err = strconv.Atoi(offsetStr)
 		if err != nil {
 			h.logger.Error("incorrect offset ", err)
-			responser.WriteError(w, http.StatusBadRequest, fmt.Errorf("incorrect offset"))
+			responser.WriteError(w, http.StatusBadRequest, errors.New("incorrect offset"))
 			return
 		}
 	}
 
-	banners, err := h.service.GetFilterBanners(r.Context(), tagId, featureId, limit, offset)
+	banners, err := h.service.GetFilterBanners(r.Context(), tagID, featureID, limit, offset)
 	if err != nil {
 		h.logger.Error("failed to get banners ", err)
 		responser.WriteError(w, http.StatusInternalServerError, err)
@@ -147,7 +147,7 @@ func (h *BannerHandler) AddBanner(w http.ResponseWriter, r *http.Request) {
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		responser.WriteStatus(w, http.StatusBadRequest)
+		responser.WriteError(w, http.StatusBadRequest, errors.New("incorrect data in body request"))
 		return
 	}
 	defer r.Body.Close()
@@ -157,20 +157,20 @@ func (h *BannerHandler) AddBanner(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		h.logger.Error("error in unmarshall")
-		responser.WriteStatus(w, http.StatusBadRequest)
+		responser.WriteError(w, http.StatusBadRequest, errors.New("invalid json in body request"))
 		return
 	}
 
-	bannerId, err := h.service.AddBanner(r.Context(), b)
+	bannerID, err := h.service.AddBanner(r.Context(), b)
 	if err != nil {
-		responser.WriteStatus(w, http.StatusInternalServerError)
+		responser.WriteError(w, http.StatusInternalServerError, err)
 		h.logger.Error(err)
 		return
 	}
 
 	bannerJSON, err := json.Marshal(struct {
 		BannerID int `json:"banner_id"`
-	}{BannerID: bannerId})
+	}{BannerID: bannerID})
 
 	responser.WriteJSON(w, http.StatusCreated, bannerJSON)
 }
@@ -182,19 +182,20 @@ func (h *BannerHandler) UpdateBanner(w http.ResponseWriter, r *http.Request) {
 	idStr, ok := vars["id"]
 	if !ok || idStr == "" {
 		h.logger.Error("id is empty")
-		responser.WriteError(w, http.StatusBadRequest, fmt.Errorf("empty id in request"))
+		responser.WriteError(w, http.StatusBadRequest, errors.New("empty id in request"))
 		return
 	}
 
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		h.logger.Error("id is incorrect ", err)
-		responser.WriteError(w, http.StatusBadRequest, fmt.Errorf("incorrect id in request"))
+		responser.WriteError(w, http.StatusBadRequest, errors.New("incorrect id in request"))
 		return
 	}
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
+		responser.WriteError(w, http.StatusBadRequest, errors.New("incorrect data in body request"))
 		responser.WriteStatus(w, http.StatusBadRequest)
 		return
 	}
@@ -205,7 +206,7 @@ func (h *BannerHandler) UpdateBanner(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		h.logger.Error("error in unmarshall")
-		responser.WriteStatus(w, http.StatusBadRequest)
+		responser.WriteError(w, http.StatusBadRequest, errors.New("invalid json in body request"))
 		return
 	}
 
@@ -216,7 +217,7 @@ func (h *BannerHandler) UpdateBanner(w http.ResponseWriter, r *http.Request) {
 			responser.WriteStatus(w, http.StatusNotFound)
 			return
 		}
-		responser.WriteError(w, http.StatusInternalServerError, fmt.Errorf("failed to update banner"))
+		responser.WriteError(w, http.StatusInternalServerError, errors.New("failed to update banner"))
 		return
 	}
 
@@ -224,18 +225,20 @@ func (h *BannerHandler) UpdateBanner(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *BannerHandler) DeleteBanner(w http.ResponseWriter, r *http.Request) {
+	h.logger.Info("delete banner handler")
+
 	vars := mux.Vars(r)
 	idStr, ok := vars["id"]
 	if !ok || idStr == "" {
 		h.logger.Error("id is empty")
-		responser.WriteError(w, http.StatusBadRequest, fmt.Errorf("empty id in request"))
+		responser.WriteError(w, http.StatusBadRequest, errors.New("empty id in request"))
 		return
 	}
 
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		h.logger.Error("id is incorrect")
-		responser.WriteError(w, http.StatusBadRequest, fmt.Errorf("incorrectif in  request"))
+		responser.WriteError(w, http.StatusBadRequest, errors.New("incorrect id in  request"))
 		return
 	}
 
@@ -246,7 +249,7 @@ func (h *BannerHandler) DeleteBanner(w http.ResponseWriter, r *http.Request) {
 			responser.WriteStatus(w, http.StatusNotFound)
 			return
 		}
-		responser.WriteError(w, http.StatusInternalServerError, fmt.Errorf("failed to delete banner"))
+		responser.WriteError(w, http.StatusInternalServerError, errors.New("failed to delete banner"))
 		return
 	}
 

@@ -17,7 +17,7 @@ type Config struct {
 type HTTPServerConfig struct {
 	Address           string        `yaml:"address" yaml-default:"localhost:8080"`
 	Timeout           time.Duration `yaml:"timeout" yaml-default:"4s"`
-	IdleTimeout       time.Duration `yaml:"idleTimeout" yaml-default:"60s"`
+	IDleTimeout       time.Duration `yaml:"idleTimeout" yaml-default:"60s"`
 	ReadHeaderTimeout time.Duration `yaml:"readHeaderTimeout" yaml-defualt:"10s"`
 	JWTSecret         string        `yaml:"JWTSecret"`
 }
@@ -25,7 +25,6 @@ type HTTPServerConfig struct {
 type RedisConfig struct {
 	RedisAddr     string `yaml:"address"`
 	RedisPassword string `yaml:"cache_pas"`
-	RedisDB       string
 	DB            int
 }
 
