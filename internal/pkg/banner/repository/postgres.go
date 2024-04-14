@@ -213,20 +213,20 @@ func (br *BannerRepository) UpdateBanner(ctx context.Context, id int, banner *mo
 	}
 
 	if err != nil {
-		return
+		return err
 	}
 
 	if banner.TagIDs != nil {
 		rows, err := br.db.Query(ctx, getFeatureTagsForBanner, id)
 		if err != nil {
-			return
+			return err
 		}
 
 		var tagID, featureID, cnt int
 		for rows.Next() {
 			err = rows.Scan(&tagID, &featureID)
 			if err != nil {
-				return
+				return err
 			}
 			if banner.FeatureID == 0 {
 				banner.FeatureID = featureID
@@ -234,12 +234,12 @@ func (br *BannerRepository) UpdateBanner(ctx context.Context, id int, banner *mo
 			if cnt < len(banner.TagIDs) {
 				_, err = br.db.Exec(ctx, updateTagFeatureForBanner, banner.TagIDs[cnt], banner.FeatureID, tagID, featureID)
 				if err != nil {
-					return
+					return err
 				}
 			} else {
 				_, err = br.db.Exec(ctx, deleteTagFeatureForBanner, tagID, featureID)
 				if err != nil {
-					return
+					return err
 				}
 			}
 			cnt++
@@ -248,14 +248,14 @@ func (br *BannerRepository) UpdateBanner(ctx context.Context, id int, banner *mo
 		for cnt < len(banner.TagIDs) {
 			_, err = br.db.Exec(ctx, createFeatureAndTag, id, banner.TagIDs[cnt], banner.FeatureID)
 			if err != nil {
-				return
+				return err
 			}
 			cnt++
 		}
 	} else if banner.FeatureID != 0 {
 		_, err = br.db.Exec(ctx, updateFeatureForBanner, banner.FeatureID, id)
 	}
-	return
+	return err
 }
 
 func (br *BannerRepository) DeleteBanner(ctx context.Context, id int) error {
