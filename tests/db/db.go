@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -10,19 +11,10 @@ import (
 )
 
 const (
-	// databaseUser is the user for the test database.
 	databaseUser = "test_user"
-
-	// databasePass is the password of the user for the test database.
 	databasePass = "1234"
-
-	// databaseName is the name of the test database.
 	databaseName = "test_db"
-
-	// databaseHost is the host name of the test database.
 	databaseHost = "postgres"
-
-	// databasePort is the port that the test database is listening on.
 	databasePort = 5432
 )
 
@@ -34,11 +26,22 @@ CREATE TABLE IF NOT EXISTS banner(
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()
 );
+
+CREATE TABLE IF NOT EXISTS tag(
+    tag_id  INT PRIMARY KEY
+);
+
+CREATE TABLE IF NOT EXISTS feature(
+    feature_id  INT PRIMARY KEY
+);
+
 CREATE TABLE IF NOT EXISTS banner_tag_feature(
     banner_id INT,
     tag_id INT,
     feature_id INT,
     FOREIGN KEY (banner_id) REFERENCES banner(banner_id) ON DELETE CASCADE,
+    FOREIGN KEY (tag_id) REFERENCES tag(tag_id) ON DELETE CASCADE,
+    FOREIGN KEY (feature_id) REFERENCES feature(feature_id) ON DELETE CASCADE,
     CONSTRAINT PK_TagFeature PRIMARY KEY (tag_id, feature_id)
 );
 `
@@ -96,6 +99,32 @@ func Truncate(dbc *pgxpool.Pool) error {
 	}
 
 	return nil
+}
+
+func SeedTags(dbc *pgxpool.Pool) ([]int, error) {
+	tags := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+
+	for _, i := range tags {
+		_, err := dbc.Exec(context.Background(), `INSERT INTO tag(tag_id) VALUES ($1);`, i)
+		if err != nil {
+			return nil, errors.New("prepare list insertion")
+		}
+	}
+
+	return tags, nil
+}
+
+func SeedFeatures(dbc *pgxpool.Pool) ([]int, error) {
+	features := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+
+	for _, i := range features {
+		_, err := dbc.Exec(context.Background(), `INSERT INTO features(features_id) VALUES ($1);`, i)
+		if err != nil {
+			return nil, errors.New("prepare list insertion")
+		}
+	}
+
+	return features, nil
 }
 
 func SeedBanners(dbc *pgxpool.Pool) ([]models.Banner, error) {

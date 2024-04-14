@@ -185,7 +185,20 @@ func (br *BannerRepository) ReadFilterBanners(ctx context.Context,
 
 func (br *BannerRepository) CreateBanner(ctx context.Context, banner *models.BannerPayload) (int, error) {
 	bannerID := 0
-	err := br.db.QueryRow(ctx, createBanner, banner.Content, banner.IsActive.IsTrue).Scan(&bannerID)
+	tx, err := br.db.Begin(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback(ctx)
+		} else {
+			tx.Commit(ctx)
+		}
+	}()
+
+	err = br.db.QueryRow(ctx, createBanner, banner.Content, banner.IsActive.IsTrue).Scan(&bannerID)
 	if err != nil {
 		return 0, err
 	}
@@ -200,8 +213,21 @@ func (br *BannerRepository) CreateBanner(ctx context.Context, banner *models.Ban
 	return bannerID, nil
 }
 
-func (br *BannerRepository) UpdateBanner(ctx context.Context, id int, banner *models.BannerPayload) (err error) {
+func (br *BannerRepository) UpdateBanner(ctx context.Context, id int, banner *models.BannerPayload) error {
 	var cmdTag pgconn.CommandTag
+	tx, err := br.db.Begin(ctx)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback(ctx)
+		} else {
+			tx.Commit(ctx)
+		}
+	}()
+
 	if !banner.IsActive.HasValue {
 		cmdTag, err = br.db.Exec(ctx, updateBanner, banner.Content, sql.NullBool{}, id)
 	} else {
