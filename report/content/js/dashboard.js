@@ -133,7 +133,7 @@ $(document).ready(function() {
         widgets: ['zebra']
     });
 
-    var data = {"OkPercent": 100.0, "KoPercent": 0.0};
+    var data = {"OkPercent": 99.99673522690173, "KoPercent": 0.00326477309826967};
     var dataset = [
         {
             "label" : "FAIL",
@@ -173,7 +173,7 @@ $(document).ready(function() {
     });
 
     // Creates APDEX table
-    createTable($("#apdexTable"), {"supportsControllersDiscrimination": true, "overall": {"data": [1.0, 500, 1500, "Total"], "isController": false}, "titles": ["Apdex", "T (Toleration threshold)", "F (Frustration threshold)", "Label"], "items": [{"data": [1.0, 500, 1500, "HTTP Request"], "isController": false}]}, function(index, item){
+    createTable($("#apdexTable"), {"supportsControllersDiscrimination": true, "overall": {"data": [0.9999673522690173, 500, 1500, "Total"], "isController": false}, "titles": ["Apdex", "T (Toleration threshold)", "F (Frustration threshold)", "Label"], "items": [{"data": [0.9999673522690173, 500, 1500, "HTTP Request"], "isController": false}]}, function(index, item){
         switch(index){
             case 0:
                 item = item.toFixed(3);
@@ -187,7 +187,7 @@ $(document).ready(function() {
     }, [[0, 0]], 3);
 
     // Create statistics table
-    createTable($("#statisticsTable"), {"supportsControllersDiscrimination": true, "overall": {"data": ["Total", 2000, 0, 0.0, 0.39499999999999996, 0, 6, 0.0, 1.0, 1.0, 2.0, 1111.7287381878823, 177.72460394663702, 385.98212114369096], "isController": false}, "titles": ["Label", "#Samples", "FAIL", "Error %", "Average", "Min", "Max", "Median", "90th pct", "95th pct", "99th pct", "Transactions/s", "Received", "Sent"], "items": [{"data": ["HTTP Request", 2000, 0, 0.0, 0.39499999999999996, 0, 6, 0.0, 1.0, 1.0, 2.0, 1111.7287381878823, 177.72460394663702, 385.98212114369096], "isController": false}]}, function(index, item){
+    createTable($("#statisticsTable"), {"supportsControllersDiscrimination": true, "overall": {"data": ["Total", 612600, 20, 0.00326477309826967, 0.3608047665687109, 0, 615, 0.0, 1.0, 1.0, 1.0, 1020.0088913605614, 152.7160510079373, 357.35283563793433], "isController": false}, "titles": ["Label", "#Samples", "FAIL", "Error %", "Average", "Min", "Max", "Median", "90th pct", "95th pct", "99th pct", "Transactions/s", "Received", "Sent"], "items": [{"data": ["HTTP Request", 612600, 20, 0.00326477309826967, 0.3608047665687109, 0, 615, 0.0, 1.0, 1.0, 1.0, 1020.0088913605614, 152.7160510079373, 357.35283563793433], "isController": false}]}, function(index, item){
         switch(index){
             // Errors pct
             case 3:
@@ -217,7 +217,7 @@ $(document).ready(function() {
     }, [[0, 0]], 0, summaryTableHeader);
 
     // Create error table
-    createTable($("#errorsTable"), {"supportsControllersDiscrimination": false, "titles": ["Type of error", "Number of errors", "% in errors", "% in all samples"], "items": []}, function(index, item){
+    createTable($("#errorsTable"), {"supportsControllersDiscrimination": false, "titles": ["Type of error", "Number of errors", "% in errors", "% in all samples"], "items": [{"data": ["The operation lasted too long: It took 63 milliseconds, but should not have lasted longer than 50 milliseconds.", 2, 10.0, 3.26477309826967E-4], "isController": false}, {"data": ["The operation lasted too long: It took 169 milliseconds, but should not have lasted longer than 50 milliseconds.", 1, 5.0, 1.632386549134835E-4], "isController": false}, {"data": ["The operation lasted too long: It took 143 milliseconds, but should not have lasted longer than 50 milliseconds.", 1, 5.0, 1.632386549134835E-4], "isController": false}, {"data": ["The operation lasted too long: It took 261 milliseconds, but should not have lasted longer than 50 milliseconds.", 1, 5.0, 1.632386549134835E-4], "isController": false}, {"data": ["The operation lasted too long: It took 65 milliseconds, but should not have lasted longer than 50 milliseconds.", 1, 5.0, 1.632386549134835E-4], "isController": false}, {"data": ["The operation lasted too long: It took 188 milliseconds, but should not have lasted longer than 50 milliseconds.", 3, 15.0, 4.897159647404506E-4], "isController": false}, {"data": ["The operation lasted too long: It took 615 milliseconds, but should not have lasted longer than 50 milliseconds.", 2, 10.0, 3.26477309826967E-4], "isController": false}, {"data": ["The operation lasted too long: It took 61 milliseconds, but should not have lasted longer than 50 milliseconds.", 1, 5.0, 1.632386549134835E-4], "isController": false}, {"data": ["The operation lasted too long: It took 132 milliseconds, but should not have lasted longer than 50 milliseconds.", 1, 5.0, 1.632386549134835E-4], "isController": false}, {"data": ["The operation lasted too long: It took 189 milliseconds, but should not have lasted longer than 50 milliseconds.", 1, 5.0, 1.632386549134835E-4], "isController": false}, {"data": ["The operation lasted too long: It took 614 milliseconds, but should not have lasted longer than 50 milliseconds.", 1, 5.0, 1.632386549134835E-4], "isController": false}, {"data": ["The operation lasted too long: It took 67 milliseconds, but should not have lasted longer than 50 milliseconds.", 2, 10.0, 3.26477309826967E-4], "isController": false}, {"data": ["The operation lasted too long: It took 168 milliseconds, but should not have lasted longer than 50 milliseconds.", 2, 10.0, 3.26477309826967E-4], "isController": false}, {"data": ["The operation lasted too long: It took 80 milliseconds, but should not have lasted longer than 50 milliseconds.", 1, 5.0, 1.632386549134835E-4], "isController": false}]}, function(index, item){
         switch(index){
             case 2:
             case 3:
@@ -228,7 +228,7 @@ $(document).ready(function() {
     }, [[1, 1]]);
 
         // Create top5 errors by sampler
-    createTable($("#top5ErrorsBySamplerTable"), {"supportsControllersDiscrimination": false, "overall": {"data": ["Total", 2000, 0, "", "", "", "", "", "", "", "", "", ""], "isController": false}, "titles": ["Sample", "#Samples", "#Errors", "Error", "#Errors", "Error", "#Errors", "Error", "#Errors", "Error", "#Errors", "Error", "#Errors"], "items": [{"data": [], "isController": false}]}, function(index, item){
+    createTable($("#top5ErrorsBySamplerTable"), {"supportsControllersDiscrimination": false, "overall": {"data": ["Total", 612600, 20, "The operation lasted too long: It took 188 milliseconds, but should not have lasted longer than 50 milliseconds.", 3, "The operation lasted too long: It took 63 milliseconds, but should not have lasted longer than 50 milliseconds.", 2, "The operation lasted too long: It took 615 milliseconds, but should not have lasted longer than 50 milliseconds.", 2, "The operation lasted too long: It took 67 milliseconds, but should not have lasted longer than 50 milliseconds.", 2, "The operation lasted too long: It took 168 milliseconds, but should not have lasted longer than 50 milliseconds.", 2], "isController": false}, "titles": ["Sample", "#Samples", "#Errors", "Error", "#Errors", "Error", "#Errors", "Error", "#Errors", "Error", "#Errors", "Error", "#Errors"], "items": [{"data": ["HTTP Request", 612600, 20, "The operation lasted too long: It took 188 milliseconds, but should not have lasted longer than 50 milliseconds.", 3, "The operation lasted too long: It took 63 milliseconds, but should not have lasted longer than 50 milliseconds.", 2, "The operation lasted too long: It took 615 milliseconds, but should not have lasted longer than 50 milliseconds.", 2, "The operation lasted too long: It took 67 milliseconds, but should not have lasted longer than 50 milliseconds.", 2, "The operation lasted too long: It took 168 milliseconds, but should not have lasted longer than 50 milliseconds.", 2], "isController": false}]}, function(index, item){
         return item;
     }, [[0, 0]], 0);
 
