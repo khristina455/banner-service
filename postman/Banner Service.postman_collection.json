@@ -158,6 +158,32 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "Banner Versions",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "Change banner version",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/banner/100",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"banner",
+						"100"
+					]
+				}
+			},
+			"response": []
 		}
 	],
 	"variable": [
