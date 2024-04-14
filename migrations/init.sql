@@ -3,7 +3,9 @@ CREATE TABLE IF NOT EXISTS banner(
     content    BYTEA NOT NULL,
     is_active  BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
+    updated_at TIMESTAMP DEFAULT NOW(),
+    current_version INT NOT NULL,
+    total_versions  INT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS tag(
@@ -22,6 +24,16 @@ CREATE TABLE IF NOT EXISTS banner_tag_feature(
     FOREIGN KEY (tag_id) REFERENCES tag(tag_id) ON DELETE CASCADE,
     FOREIGN KEY (feature_id) REFERENCES feature(feature_id) ON DELETE CASCADE,
     CONSTRAINT PK_TagFeature PRIMARY KEY (tag_id, feature_id)
+);
+
+CREATE TABLE IF NOT EXISTS banner_version(
+    banner_id   INT,
+    "version"   INT,
+    content     BYTEA NOT NULL,
+    created_at  TIMESTAMP NOT NULL,
+    updated_at  TIMESTAMP NOT NULL,
+    FOREIGN KEY (banner_id) REFERENCES banner(banner_id) ON DELETE CASCADE,
+    CONSTRAINT PK_BannerVersion PRIMARY KEY (banner_id, "version")
 );
 
 CREATE TABLE IF NOT EXISTS "user"(

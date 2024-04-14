@@ -30,8 +30,9 @@ func (bs *BannerService) GetBanner(ctx context.Context, tagID, featureID int,
 		banner, ok = bs.cache.Get(ctx, key)
 	}
 
+	var err error
 	if isAdmin {
-		banner, err := bs.repo.ReadBanner(ctx, tagID, featureID)
+		banner, err = bs.repo.ReadBanner(ctx, tagID, featureID)
 		if err != nil {
 			return nil, err
 		}
@@ -43,7 +44,7 @@ func (bs *BannerService) GetBanner(ctx context.Context, tagID, featureID int,
 	}
 
 	if !ok {
-		banner, err := bs.repo.ReadUserBanner(ctx, tagID, featureID)
+		banner, err = bs.repo.ReadUserBanner(ctx, tagID, featureID)
 		if err != nil {
 			return nil, err
 		}

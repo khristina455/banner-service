@@ -12,25 +12,34 @@ import (
 	"banner-service/internal/utils/responser"
 )
 
-func Auth(log *logrus.Logger, onlyAdmin bool, next http.Handler) http.Handler {
+type MwAuth struct {
+	log          *logrus.Logger
+	tokenManager *jwter.Manager
+}
+
+func New(log *logrus.Logger, tokenManager *jwter.Manager) *MwAuth {
+	return &MwAuth{log, tokenManager}
+}
+
+func (mw *MwAuth) Auth(onlyAdmin bool, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		tokenCookie, err := r.Cookie("AccessToken")
 		if err != nil {
 			switch {
 			case errors.Is(err, http.ErrNoCookie):
-				log.Debug("token cookie not found", err)
+				mw.log.Debug("token cookie not found", err)
 				responser.WriteStatus(w, http.StatusUnauthorized)
 				return
 			default:
-				log.Error("faild to get token cookie", err)
+				mw.log.Error("faild to get token cookie", err)
 				responser.WriteStatus(w, http.StatusUnauthorized)
 				return
 			}
 		}
 
-		claims, err := jwter.TokenManagerSingleton.ParseJWT(tokenCookie.Value)
+		claims, err := mw.tokenManager.ParseJWT(tokenCookie.Value)
 		if err != nil {
-			log.Error("jws token is invalid auth ", err)
+			mw.log.Error("jws token is invalid auth ", err)
 			responser.WriteStatus(w, http.StatusUnauthorized)
 			return
 		}

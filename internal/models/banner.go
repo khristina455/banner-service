@@ -11,14 +11,14 @@ type NullBool struct {
 }
 
 func (nullBool *NullBool) UnmarshalJSON(b []byte) error {
-	var unmarshalledJson bool
+	var unmarshalledJSON bool
 
-	err := json.Unmarshal(b, &unmarshalledJson)
+	err := json.Unmarshal(b, &unmarshalledJSON)
 	if err != nil {
 		return err
 	}
 
-	nullBool.IsTrue = unmarshalledJson
+	nullBool.IsTrue = unmarshalledJSON
 	nullBool.HasValue = true
 
 	return nil

@@ -65,7 +65,7 @@ func NewConnection(cfg Config) (*pgxpool.Pool, error) {
 		cfg.Name))
 
 	if err != nil {
-		err = fmt.Errorf("error happened in sql.Open: %w", err)
+		err = errors.New("error happened in sql.Open: " + err.Error())
 		return nil, err
 	}
 
@@ -74,7 +74,7 @@ func NewConnection(cfg Config) (*pgxpool.Pool, error) {
 	}
 
 	if _, err = db.Exec(context.Background(), schema); err != nil {
-		return nil, fmt.Errorf("apply database schema")
+		return nil, errors.New("apply database schema")
 	}
 
 	return db, nil
@@ -95,7 +95,7 @@ func Truncate(dbc *pgxpool.Pool) error {
 	stmt := `TRUNCATE TABLE banner_tag_feature, banner;`
 
 	if _, err := dbc.Exec(context.Background(), stmt); err != nil {
-		return fmt.Errorf("truncate test database tables")
+		return errors.New("truncate test database tables")
 	}
 
 	return nil
@@ -172,14 +172,14 @@ func SeedBanners(dbc *pgxpool.Pool) ([]models.Banner, error) {
 			`INSERT INTO banner(content, is_active) VALUES ($1, $2) RETURNING banner_id;`,
 			banners[i].Content, banners[i].IsActive).Scan(&banners[i].BannerID)
 		if err != nil {
-			return nil, fmt.Errorf("prepare list insertion")
+			return nil, errors.New("prepare list insertion")
 		}
 
 		_, err = dbc.Exec(context.Background(),
 			`INSERT INTO banner_tag_feature(banner_id, tag_id, feature_id) VALUES ($1, $2, $3) RETURNING banner_id;`,
 			banners[i].BannerID, banners[i].TagIDs[0], banners[i].FeatureID)
 		if err != nil {
-			return nil, fmt.Errorf("prepare list insertion")
+			return nil, errors.New("prepare list insertion")
 		}
 	}
 

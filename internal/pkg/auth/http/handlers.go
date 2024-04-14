@@ -14,12 +14,13 @@ import (
 )
 
 type AuthHandler struct {
-	service auth.AuthService
-	logger  *logrus.Logger
+	service      auth.AuthService
+	logger       *logrus.Logger
+	tokenManager *jwter.Manager
 }
 
-func NewAuthHandler(s auth.AuthService, logger *logrus.Logger) *AuthHandler {
-	return &AuthHandler{s, logger}
+func NewAuthHandler(s auth.AuthService, logger *logrus.Logger, tokenManager *jwter.Manager) *AuthHandler {
+	return &AuthHandler{s, logger, tokenManager}
 }
 
 func (ah *AuthHandler) SignIn(w http.ResponseWriter, r *http.Request) {
@@ -44,7 +45,7 @@ func (ah *AuthHandler) SignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := jwter.TokenManagerSingleton.GenerateJWT(u)
+	token, err := ah.tokenManager.GenerateJWT(u)
 	if err != nil {
 		responser.WriteStatus(w, http.StatusInternalServerError)
 		return
@@ -76,7 +77,7 @@ func (ah *AuthHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := jwter.TokenManagerSingleton.GenerateJWT(u)
+	token, err := ah.tokenManager.GenerateJWT(u)
 	if err != nil {
 		responser.WriteStatus(w, http.StatusInternalServerError)
 		return

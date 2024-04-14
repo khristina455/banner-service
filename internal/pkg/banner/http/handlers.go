@@ -168,7 +168,7 @@ func (h *BannerHandler) AddBanner(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bannerJSON, err := json.Marshal(struct {
+	bannerJSON, _ := json.Marshal(struct {
 		BannerID int `json:"banner_id"`
 	}{BannerID: bannerID})
 

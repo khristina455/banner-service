@@ -17,20 +17,15 @@ type Claims struct {
 }
 
 type Manager struct {
+	ttl        time.Duration
 	signingKey string
 }
 
-// TODO:избавиться от синглтона
-
-var TokenManagerSingleton *Manager
-
-func LoadSecret(signingKey string) error {
-	if signingKey == "" {
-		return errors.New("empty signing key")
+func New(signingKey string, ttl time.Duration) *Manager {
+	return &Manager{
+		ttl:        ttl,
+		signingKey: signingKey,
 	}
-
-	TokenManagerSingleton = &Manager{signingKey: signingKey}
-	return nil
 }
 
 func (m *Manager) GenerateJWT(user *models.User) (string, error) {
@@ -39,7 +34,7 @@ func (m *Manager) GenerateJWT(user *models.User) (string, error) {
 		IsAdmin: user.IsAdmin,
 		TagID:   user.TagID,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Hour * 60).Unix(),
+			ExpiresAt: time.Now().Add(m.ttl).Unix(),
 		},
 	}
 

@@ -1,6 +1,7 @@
 package app
 
 import (
+	"banner-service/internal/utils/jwter"
 	"context"
 	"fmt"
 	"net/http"
@@ -23,7 +24,6 @@ import (
 	"banner-service/internal/pkg/cache"
 	"banner-service/internal/pkg/config"
 	"banner-service/internal/pkg/middleware"
-	"banner-service/internal/utils/jwter"
 )
 
 type App struct {
@@ -35,7 +35,7 @@ func NewApp(logger *logrus.Logger) *App {
 }
 
 func (a *App) Run() error {
-	wd, err := os.Getwd()
+	wd, _ := os.Getwd()
 	cfg, err := config.Load(wd + "/configs/config.yaml")
 	if err != nil {
 		a.logger.Fatalln(err)
@@ -67,7 +67,9 @@ func (a *App) Run() error {
 	})
 	defer rc.Close()
 
-	cacheClient := cache.NewRedisClient(rc)
+	tokenManager := jwter.New(cfg.JWTSecret, cfg.JWTTTL)
+
+	cacheClient := cache.NewRedisClient(rc, cfg.RedisTTL)
 
 	bannerRepo := bannerRepository.NewBannerRepository(db)
 	bannerService := bannerService.NewBannerService(bannerRepo, cacheClient)
@@ -75,15 +77,17 @@ func (a *App) Run() error {
 
 	authRepo := authRepository.NewAuthRepository(db)
 	authService := authService.NewAuthService(authRepo)
-	authHandler := authHandler.NewAuthHandler(authService, a.logger)
+	authHandler := authHandler.NewAuthHandler(authService, a.logger, tokenManager)
+
+	mw := middleware.New(a.logger, tokenManager)
 
 	r := mux.NewRouter().PathPrefix("/api").Subrouter()
-	r.Handle("/user_banner", middleware.Auth(a.logger, false, http.HandlerFunc(bannerHandler.GetBanner))).Methods("GET")
-	r.Handle("/banner", middleware.Auth(a.logger, true, http.HandlerFunc(bannerHandler.GetBannerList))).Methods("GET")
-	r.Handle("/banner", middleware.Auth(a.logger, true, http.HandlerFunc(bannerHandler.AddBanner))).Methods("POST")
-	r.Handle("/banner/{id:[0-9]+}", middleware.Auth(a.logger, true,
+	r.Handle("/user_banner", mw.Auth(false, http.HandlerFunc(bannerHandler.GetBanner))).Methods("GET")
+	r.Handle("/banner", mw.Auth(true, http.HandlerFunc(bannerHandler.GetBannerList))).Methods("GET")
+	r.Handle("/banner", mw.Auth(true, http.HandlerFunc(bannerHandler.AddBanner))).Methods("POST")
+	r.Handle("/banner/{id:[0-9]+}", mw.Auth(true,
 		http.HandlerFunc(bannerHandler.UpdateBanner))).Methods("PATCH")
-	r.Handle("/banner/{id:[0-9]+}", middleware.Auth(a.logger, true,
+	r.Handle("/banner/{id:[0-9]+}", mw.Auth(true,
 		http.HandlerFunc(bannerHandler.DeleteBanner))).Methods("DELETE")
 	r.HandleFunc("/sign_in", authHandler.SignIn).Methods("POST")
 	r.HandleFunc("/sign_up", authHandler.SignUp).Methods("POST")
@@ -95,11 +99,6 @@ func (a *App) Run() error {
 		WriteTimeout:      cfg.Timeout,
 		IdleTimeout:       cfg.IDleTimeout,
 		ReadHeaderTimeout: cfg.ReadHeaderTimeout,
-	}
-
-	err = jwter.LoadSecret(cfg.JWTSecret)
-	if err != nil {
-		a.logger.Error("error to load secret ", err)
 	}
 
 	quit := make(chan os.Signal, 1)

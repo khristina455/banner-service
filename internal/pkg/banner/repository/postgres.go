@@ -156,7 +156,8 @@ func (br *BannerRepository) ReadFilterBanners(ctx context.Context,
 			return make([]models.Banner, 0), err
 		}
 
-		tagsRows, err := br.db.Query(ctx, getTagsForBanner, bannerID)
+		var tagsRows pgx.Rows
+		tagsRows, err = br.db.Query(ctx, getTagsForBanner, bannerID)
 
 		if err != nil {
 			return make([]models.Banner, 0), err
@@ -243,7 +244,8 @@ func (br *BannerRepository) UpdateBanner(ctx context.Context, id int, banner *mo
 	}
 
 	if banner.TagIDs != nil {
-		rows, err := br.db.Query(ctx, getFeatureTagsForBanner, id)
+		var rows pgx.Rows
+		rows, err = br.db.Query(ctx, getFeatureTagsForBanner, id)
 		if err != nil {
 			return err
 		}

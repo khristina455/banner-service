@@ -20,12 +20,14 @@ type HTTPServerConfig struct {
 	IDleTimeout       time.Duration `yaml:"idleTimeout" yaml-default:"60s"`
 	ReadHeaderTimeout time.Duration `yaml:"readHeaderTimeout" yaml-defualt:"10s"`
 	JWTSecret         string        `yaml:"JWTSecret"`
+	JWTTTL            time.Duration `yaml:"JWTTTL" yaml-defualt:"6h"`
 }
 
 type RedisConfig struct {
 	RedisAddr     string `yaml:"address"`
 	RedisPassword string `yaml:"cache_pas"`
 	DB            int
+	RedisTTL      time.Duration `yaml:"cacheTTL"`
 }
 
 type PostgresConfig struct {
