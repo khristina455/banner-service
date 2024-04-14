@@ -1,4 +1,4 @@
-package tests
+package tests_test
 
 import (
 	"banner-service/internal/models"
@@ -6,7 +6,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/mux"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -15,6 +14,7 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 
 	bannerHandler "banner-service/internal/pkg/banner/http"
@@ -277,7 +277,7 @@ func Test_addBanner(t *testing.T) {
 				t.Errorf("error encoding request body: %v", err)
 			}
 
-			req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("/banner"), &b)
+			req, err := http.NewRequest(http.MethodPost, "/banner", &b)
 			if err != nil {
 				t.Errorf("error creating request: %v", err)
 			}
@@ -301,6 +301,10 @@ func Test_addBanner(t *testing.T) {
 			err = testDB.QueryRow(context.Background(), `SELECT content, is_active FROM banner WHERE banner_id=$1`,
 				test.Resp.BannerID).Scan(&expectedBanner.Content, &expectedBanner.IsActive)
 
+			if err != nil {
+				t.Errorf("error to get banner")
+			}
+
 			if d := cmp.Diff(test.RequestBody.Content, expectedBanner.Content); d != "" {
 				t.Errorf("unexpected difference in response body:\n%v", d)
 			}
@@ -308,7 +312,6 @@ func Test_addBanner(t *testing.T) {
 			if e, a := test.RequestBody.IsActive, expectedBanner.IsActive; e != a {
 				t.Errorf("expected banner activity: %v, got banner activity: %v", e, a)
 			}
-
 		}
 
 		t.Run(test.Name, fn)
@@ -394,12 +397,14 @@ func Test_updateBanner(t *testing.T) {
 			err = testDB.QueryRow(context.Background(), `SELECT content, is_active FROM banner WHERE banner_id=$1`,
 				test.BannerId).Scan(&banner.Content, &banner.IsActive)
 
+			if err != nil {
+				t.Errorf("error to get banner")
+			}
+
 			if d := cmp.Diff(test.RequestBody.Content, banner.Content); d != "" {
 				t.Errorf("unexpected difference in response body:\n%v", d)
 			}
-
 		}
-
 		t.Run(test.Name, fn)
 	}
 }
@@ -470,9 +475,12 @@ func Test_deleteBanner(t *testing.T) {
 			}
 
 			cmdTag, err := testDB.Exec(context.Background(), `SELECT * FROM banner WHERE banner_id=$1`, test.BannerId)
+			if err != nil {
+				t.Errorf("error to get banner")
+			}
 
 			if cmdTag.RowsAffected() != 0 {
-				t.Errorf("banner still in table ")
+				t.Errorf("banner still in table")
 			}
 		}
 

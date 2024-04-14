@@ -193,9 +193,9 @@ func (br *BannerRepository) CreateBanner(ctx context.Context, banner *models.Ban
 
 	defer func() {
 		if err != nil {
-			tx.Rollback(ctx)
+			_ = tx.Rollback(ctx)
 		} else {
-			tx.Commit(ctx)
+			_ = tx.Commit(ctx)
 		}
 	}()
 
@@ -223,9 +223,9 @@ func (br *BannerRepository) UpdateBanner(ctx context.Context, id int, banner *mo
 
 	defer func() {
 		if err != nil {
-			tx.Rollback(ctx)
+			_ = tx.Rollback(ctx)
 		} else {
-			tx.Commit(ctx)
+			_ = tx.Commit(ctx)
 		}
 	}()
 
