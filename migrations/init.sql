@@ -4,8 +4,8 @@ CREATE TABLE IF NOT EXISTS banner(
     is_active  BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
-    current_version INT NOT NULL,
-    total_versions  INT NOT NULL
+    current_version INT DEFAULT 1,
+    total_versions  INT DEFAULT 1
 );
 
 CREATE TABLE IF NOT EXISTS tag(
@@ -54,7 +54,7 @@ CREATE INDEX index_feature_tag
 ON banner_tag_feature(tag_id, feature_id);
 
 INSERT INTO banner (
-    content, is_active
+    content, is_active, current_version, total_versions
 )
 SELECT
     ('{"url": "u://banner/' || i::text || '", "title": "title of banner ' ||  i::text  || '"}')::bytea,
@@ -86,4 +86,4 @@ FROM
     generate_series(1, 1000) AS tag(num),
     generate_series(1, 1000) AS feature(num);
 
---создать еще индексы
+INSERT INTO "user" (login, password, is_admin, tag_id) VALUES ('admin', '6789', true, 1);

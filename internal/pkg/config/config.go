@@ -24,18 +24,17 @@ type HTTPServerConfig struct {
 }
 
 type RedisConfig struct {
-	RedisAddr     string `yaml:"address"`
-	RedisPassword string `yaml:"cache_pas"`
-	DB            int
+	RedisAddr     string        `yaml:"address"`
+	RedisPassword string        `yaml:"cachePas"`
 	RedisTTL      time.Duration `yaml:"cacheTTL"`
 }
 
 type PostgresConfig struct {
-	DBName string `yaml:"db_name"`
-	DBPass string `yaml:"db_pass"`
-	DBHost string `yaml:"db_host"`
-	DBPort int    `yaml:"db_port"`
-	DBUser string `yaml:"db_user"`
+	DBName string `yaml:"dbName"`
+	DBPass string `yaml:"dbPass"`
+	DBHost string `yaml:"dbHost"`
+	DBPort int    `yaml:"dbPort"`
+	DBUser string `yaml:"dbUser"`
 }
 
 func Load(filename string) (*Config, error) {
