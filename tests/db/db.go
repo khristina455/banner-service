@@ -54,8 +54,6 @@ type Config struct {
 	Port int
 }
 
-// NewConnection returns a new database connection with the schema applied, if not already
-// applied.
 func NewConnection(cfg Config) (*pgxpool.Pool, error) {
 	db, err := pgxpool.New(context.Background(), fmt.Sprintf("postgres://%v:%v@%v:%v/%v?sslmode=disable",
 		cfg.User,
@@ -92,7 +90,7 @@ func Open() (*pgxpool.Pool, error) {
 }
 
 func Truncate(dbc *pgxpool.Pool) error {
-	stmt := `TRUNCATE TABLE banner_tag_feature, banner;`
+	stmt := `TRUNCATE TABLE banner_tag_feature, banner, tag, feature;`
 
 	if _, err := dbc.Exec(context.Background(), stmt); err != nil {
 		return errors.New("truncate test database tables")
@@ -107,7 +105,7 @@ func SeedTags(dbc *pgxpool.Pool) ([]int, error) {
 	for _, i := range tags {
 		_, err := dbc.Exec(context.Background(), `INSERT INTO tag(tag_id) VALUES ($1);`, i)
 		if err != nil {
-			return nil, errors.New("prepare list insertion")
+			return nil, err
 		}
 	}
 
@@ -118,9 +116,9 @@ func SeedFeatures(dbc *pgxpool.Pool) ([]int, error) {
 	features := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 
 	for _, i := range features {
-		_, err := dbc.Exec(context.Background(), `INSERT INTO features(features_id) VALUES ($1);`, i)
+		_, err := dbc.Exec(context.Background(), `INSERT INTO feature(feature_id) VALUES ($1);`, i)
 		if err != nil {
-			return nil, errors.New("prepare list insertion")
+			return nil, err
 		}
 	}
 
@@ -130,37 +128,37 @@ func SeedFeatures(dbc *pgxpool.Pool) ([]int, error) {
 func SeedBanners(dbc *pgxpool.Pool) ([]models.Banner, error) {
 	banners := []models.Banner{
 		{
-			Content:   []byte(`{"content": "content of banner 1"}`),
+			Content:   []byte(`{"content":"content of banner 1"}`),
 			IsActive:  true,
 			TagIDs:    []int{1},
 			FeatureID: 1,
 		},
 		{
-			Content:   []byte(`{"content": "content of banner 2"}`),
+			Content:   []byte(`{"content":"content of banner 2"}`),
 			IsActive:  true,
 			TagIDs:    []int{2},
 			FeatureID: 2,
 		},
 		{
-			Content:   []byte(`{"content": "content of banner 3"}`),
+			Content:   []byte(`{"content":"content of banner 3"}`),
 			IsActive:  true,
 			TagIDs:    []int{3},
 			FeatureID: 3,
 		},
 		{
-			Content:   []byte(`{"content": "content of banner 4"}`),
+			Content:   []byte(`{"content":"content of banner 4"}`),
 			IsActive:  true,
 			TagIDs:    []int{4},
 			FeatureID: 4,
 		},
 		{
-			Content:   []byte(`{"content": "content of banner 5"}`),
+			Content:   []byte(`{"content":"content of banner 5"}`),
 			IsActive:  true,
 			TagIDs:    []int{5},
 			FeatureID: 5,
 		},
 		{
-			Content:   []byte(`{"content": "content of banner 6"}`),
+			Content:   []byte(`{"content":"content of banner 6"}`),
 			IsActive:  true,
 			TagIDs:    []int{6},
 			FeatureID: 6,
@@ -169,8 +167,8 @@ func SeedBanners(dbc *pgxpool.Pool) ([]models.Banner, error) {
 
 	for i := range banners {
 		err := dbc.QueryRow(context.Background(),
-			`INSERT INTO banner(content, is_active) VALUES ($1, $2) RETURNING banner_id;`,
-			banners[i].Content, banners[i].IsActive).Scan(&banners[i].BannerID)
+			`INSERT INTO banner(content, is_active) VALUES ($1, $2) RETURNING banner_id, created_at, updated_at;`,
+			banners[i].Content, banners[i].IsActive).Scan(&banners[i].BannerID, &banners[i].CreatedAt, &banners[i].UpdatedAt)
 		if err != nil {
 			return nil, errors.New("prepare list insertion")
 		}

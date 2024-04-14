@@ -2,7 +2,7 @@ http_server:
   #address: "banner-service:8080"
   address: "localhost:8083"
   JWTSecret: "0L7Rh9C10L3RjCDRhdC+0YfRgyDRgyDQstCw0YEg0YDQsNCx0L7RgtCw0YLRjCk="
-  JWTTTl: 6h
+  JWTTTL: 6h
 postgres:
   #db_pass: "12345"
   #db_host: "postgres"

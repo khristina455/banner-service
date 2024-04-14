@@ -3,4 +3,4 @@ WORKDIR /testing
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . ./
-CMD ["go", "test", "-v", "./..."]
+CMD ["go", "test", "-v", "./tests/..."]
