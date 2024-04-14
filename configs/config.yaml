@@ -1,34 +1,28 @@
-#http_server:
-#  address: "banner-service:8080"
-#  #address: "localhost:8083"
-#  JWTSecret: "0L7Rh9C10L3RjCDRhdC+0YfRgyDRgyDQstCw0YEg0YDQsNCx0L7RgtCw0YLRjCk="
-#  JWTTTL: 6h
-#postgres:
-#  db_pass: "12345"
-#  db_host: "postgres"
-#  db_user: "root"
-#  db_name: "bannerDB"
-##  db_pass: "2304"
-##  db_host: "localhost"
-#  db_port: 5432
-#  #db_user: "postgres"
-#redis:
-#  cacheTTL: 5m
-#  address: "cache:6379"
-#  #address: "localhost:6379"
-#  cache_pass: "67890"
-
 http_server:
-  address: "banner-service:8080"
+  address: "localhost:8083"
   JWTSecret: "0L7Rh9C10L3RjCDRhdC+0YfRgyDRgyDQstCw0YEg0YDQsNCx0L7RgtCw0YLRjCk="
   JWTTTL: 6h
 postgres:
   dbName: "bannerDB"
-  dbPass: "12345"
-  dbHost: "postgres"
+  dbPass: "2304"
+  dbHost: "localhost"
   dbPort: 5432
-  dbUser: "root"
+  dbUser: "postgres"
 redis:
-  address: "cache:6379"
   cacheTTL: 5m
-  cachePass: "67890"
+
+#
+#http_server:
+#  address: "banner-service:8080"
+#  JWTSecret: "0L7Rh9C10L3RjCDRhdC+0YfRgyDRgyDQstCw0YEg0YDQsNCx0L7RgtCw0YLRjCk="
+#  JWTTTL: 6h
+#postgres:
+#  dbName: "bannerDB"
+#  dbPass: "12345"
+#  dbHost: "postgres"
+#  dbPort: 5432
+#  dbUser: "root"
+#redis:
+#  address: "cache:6379"
+#  cacheTTL: 5m
+#  cachePass: "67890"

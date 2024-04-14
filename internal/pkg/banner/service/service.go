@@ -18,8 +18,6 @@ func NewBannerService(repo banner.BannerRepository, cache *cache.RedisClient) *B
 	return &BannerService{repo: repo, cache: cache}
 }
 
-// TODO:решить вопрос с флагом активности
-
 func (bs *BannerService) GetBanner(ctx context.Context, tagID, featureID int,
 	useLastRevision bool, isAdmin bool) ([]byte, error) {
 	var banner []byte
@@ -85,5 +83,20 @@ func (bs *BannerService) UpdateBanner(ctx context.Context, id int, banner *model
 
 func (bs *BannerService) DeleteBanner(ctx context.Context, id int) error {
 	err := bs.repo.DeleteBanner(ctx, id)
+	return err
+}
+
+func (bs *BannerService) GetCurrentBanner(ctx context.Context, id int) (models.BannerVersion, error) {
+	currentVersion, err := bs.repo.ReadCurrentBannerByID(ctx, id)
+	return currentVersion, err
+}
+
+func (bs *BannerService) GetOldBanners(ctx context.Context, id int) ([]models.BannerVersion, error) {
+	oldVersions, err := bs.repo.ReadOldVersions(ctx, id)
+	return oldVersions, err
+}
+
+func (bs *BannerService) ChangeVersionOfBanner(ctx context.Context, id int, version int) error {
+	err := bs.repo.UpdateVersionOfBanner(ctx, id, version)
 	return err
 }

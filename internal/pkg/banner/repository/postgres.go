@@ -14,8 +14,6 @@ import (
 	"banner-service/internal/models"
 )
 
-// TODO:сделать транзакции
-
 const (
 	getBannerIDByTagFeature    = `SELECT banner_id FROM banner_tag_feature WHERE tag_id=$1 AND feature_id=$2;`
 	getBannerIDsByTag          = `SELECT DISTINCT banner_id FROM banner_tag_feature WHERE tag_id=$1`
@@ -41,6 +39,22 @@ const (
 					                 WHERE banner_id=$2;`
 	deleteTagFeatureForBanner = `DELETE FROM banner_tag_feature WHERE tag_id=$1 AND feature_id=$2;`
 	deleteBanner              = `DELETE FROM banner WHERE banner_id=$1;`
+	readCurrentVersion        = `SELECT current_version, total_versions, content, created_at, updated_at FROM 
+                                  banner WHERE banner_id=$1;`
+	createVersion = `INSERT INTO banner_version(banner_id, version, content, created_at, updated_at) 
+								  VALUES ($1, $2, $3, $4, $5);`
+	deleteVersion         = `DELETE FROM banner_version WHERE banner_id=$1 AND version=$2;`
+	updateVersionOfBanner = `UPDATE banner SET current_version = $1, total_versions=$2 WHERE banner_id=$3;`
+	getCurrentVersion     = `SELECT current_version, content, created_at, updated_at FROM banner 
+                                          WHERE banner_id=$1;`
+	getOldVersions = `SELECT version, content, created_at, updated_at FROM banner_version 
+                                          WHERE banner_id=$1;`
+	getVersionOfBanner = `SELECT content, created_at, updated_at FROM banner_version WHERE banner_id=$1 
+                                          AND "version"=$2;`
+	deleteGreaterAndEqualBannerVersion = `DELETE FROM banner_version WHERE banner_id=$1 AND "version">=$2;`
+	updateCurrentBannerVersion         = `UPDATE banner SET content=$1, current_version=$2, 
+                  									created_at=$3, updated_at=$4, total_versions=total_versions-$5 
+              										WHERE banner_id=$6;`
 )
 
 var (
@@ -229,6 +243,13 @@ func (br *BannerRepository) UpdateBanner(ctx context.Context, id int, banner *mo
 		}
 	}()
 
+	if banner.Content != nil {
+		err = br.createVersion(ctx, id)
+		if err != nil {
+			return err
+		}
+	}
+
 	if !banner.IsActive.HasValue {
 		cmdTag, err = br.db.Exec(ctx, updateBanner, banner.Content, sql.NullBool{}, id)
 	} else {
@@ -292,5 +313,95 @@ func (br *BannerRepository) DeleteBanner(ctx context.Context, id int) error {
 		return ErrBannerNotFound
 	}
 
+	return err
+}
+
+func (br *BannerRepository) createVersion(ctx context.Context, id int) error {
+	var oldVersion models.BannerVersion
+	var totalVersions int
+
+	err := br.db.QueryRow(ctx, readCurrentVersion, id).Scan(&oldVersion.Version, &totalVersions,
+		&oldVersion.Content, &oldVersion.CreatedAt, &oldVersion.UpdatedAt)
+
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ErrBannerNotFound
+		}
+	}
+
+	_, err = br.db.Exec(ctx, createVersion, id, oldVersion.Version, oldVersion.Content,
+		oldVersion.CreatedAt, oldVersion.UpdatedAt)
+
+	if err != nil {
+		return err
+	}
+
+	if totalVersions >= 3 {
+		_, err = br.db.Exec(ctx, deleteVersion, id, oldVersion.Version-1)
+		if err != nil {
+			return err
+		}
+
+		totalVersions -= 1
+	}
+
+	_, err = br.db.Exec(ctx, updateVersionOfBanner, oldVersion.Version+1, totalVersions+1, id)
+	return err
+}
+
+func (br *BannerRepository) ReadCurrentBannerByID(ctx context.Context, id int) (models.BannerVersion, error) {
+	var banner models.BannerVersion
+	err := br.db.QueryRow(ctx, getCurrentVersion, id).Scan(&banner.Version,
+		&banner.Content, &banner.CreatedAt, &banner.UpdatedAt)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return models.BannerVersion{}, ErrBannerNotFound
+	}
+	return banner, err
+}
+
+func (br *BannerRepository) ReadOldVersions(ctx context.Context, id int) ([]models.BannerVersion, error) {
+	banners := make([]models.BannerVersion, 0)
+	rows, err := br.db.Query(ctx, getOldVersions, id)
+
+	for rows.Next() {
+		var banner models.BannerVersion
+		err = rows.Scan(&banner.Version, &banner.Content, &banner.CreatedAt, &banner.UpdatedAt)
+		if err != nil {
+			return make([]models.BannerVersion, 0), err
+		}
+		banners = append(banners, banner)
+	}
+	return banners, err
+}
+
+func (br *BannerRepository) UpdateVersionOfBanner(ctx context.Context, id int, version int) error {
+	tx, err := br.db.Begin(ctx)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback(ctx)
+		} else {
+			_ = tx.Commit(ctx)
+		}
+	}()
+
+	var newVersion models.BannerVersion
+	err = br.db.QueryRow(ctx, getVersionOfBanner, id, version).Scan(&newVersion.Content,
+		&newVersion.CreatedAt, &newVersion.UpdatedAt)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ErrBannerNotFound
+		}
+		return nil
+	}
+
+	var cmdTag pgconn.CommandTag
+	cmdTag, err = br.db.Exec(ctx, deleteGreaterAndEqualBannerVersion, id, version)
+
+	_, err = br.db.Exec(ctx, updateCurrentBannerVersion, newVersion.Content, version,
+		newVersion.CreatedAt, newVersion.UpdatedAt, cmdTag.RowsAffected(), id)
 	return err
 }

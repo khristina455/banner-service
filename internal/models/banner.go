@@ -40,3 +40,15 @@ type BannerPayload struct {
 	Content   json.RawMessage `json:"content"`
 	IsActive  NullBool        `json:"is_active"`
 }
+
+type BannerVersion struct {
+	Version   int             `json:"version"`
+	Content   json.RawMessage `json:"content"`
+	CreatedAt time.Time       `json:"created_at"`
+	UpdatedAt time.Time       `json:"updated_at"`
+}
+
+type Versions struct {
+	CurrentVersion BannerVersion   `json:"current_version"`
+	OldVersions    []BannerVersion `json:"old_versions"`
+}

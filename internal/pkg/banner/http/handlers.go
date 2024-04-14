@@ -76,6 +76,52 @@ func (h *BannerHandler) GetBanner(w http.ResponseWriter, r *http.Request) {
 	responser.WriteJSON(w, http.StatusOK, banner)
 }
 
+func (h *BannerHandler) GetBannerVersions(w http.ResponseWriter, r *http.Request) {
+	h.logger.Info("get banner versions handler")
+
+	vars := mux.Vars(r)
+	idStr, ok := vars["id"]
+	if !ok || idStr == "" {
+		h.logger.Error("id is empty")
+		responser.WriteError(w, http.StatusBadRequest, errors.New("empty id in request"))
+		return
+	}
+
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		h.logger.Error("id is incorrect")
+		responser.WriteError(w, http.StatusBadRequest, errors.New("incorrect id in  request"))
+		return
+	}
+
+	var versions models.Versions
+
+	versions.CurrentVersion, err = h.service.GetCurrentBanner(r.Context(), id)
+
+	if err != nil {
+		h.logger.Error("failed to get banner ", err)
+		if errors.Is(err, repository.ErrBannerNotFound) {
+			responser.WriteStatus(w, http.StatusNotFound)
+			return
+		}
+	}
+
+	versions.OldVersions, err = h.service.GetOldBanners(r.Context(), id)
+	if err != nil {
+		responser.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	versionsJSON, err := json.Marshal(versions)
+	if err != nil {
+		h.logger.Error("failed to get banners ", err)
+		responser.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	responser.WriteJSON(w, http.StatusOK, versionsJSON)
+}
+
 func (h *BannerHandler) GetBannerList(w http.ResponseWriter, r *http.Request) {
 	h.logger.Info("get banners handler")
 
@@ -196,7 +242,6 @@ func (h *BannerHandler) UpdateBanner(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		responser.WriteError(w, http.StatusBadRequest, errors.New("incorrect data in body request"))
-		responser.WriteStatus(w, http.StatusBadRequest)
 		return
 	}
 	defer r.Body.Close()
@@ -254,4 +299,54 @@ func (h *BannerHandler) DeleteBanner(w http.ResponseWriter, r *http.Request) {
 	}
 
 	responser.WriteStatus(w, http.StatusNoContent)
+}
+
+func (h *BannerHandler) ChangeVersionBanner(w http.ResponseWriter, r *http.Request) {
+	h.logger.Info("change version of banner handler")
+
+	vars := mux.Vars(r)
+	idStr, ok := vars["id"]
+	if !ok || idStr == "" {
+		h.logger.Error("id is empty")
+		responser.WriteError(w, http.StatusBadRequest, errors.New("empty id in request"))
+		return
+	}
+
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		h.logger.Error("id is incorrect")
+		responser.WriteError(w, http.StatusBadRequest, errors.New("incorrect id in  request"))
+		return
+	}
+
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		responser.WriteError(w, http.StatusBadRequest, errors.New("incorrect data in body request"))
+		return
+	}
+	defer r.Body.Close()
+
+	version := struct {
+		Version int `json:"version"`
+	}{}
+	err = json.Unmarshal(body, &version)
+
+	if err != nil {
+		h.logger.Error("error in unmarshall")
+		responser.WriteError(w, http.StatusBadRequest, errors.New("invalid json in body request"))
+		return
+	}
+
+	err = h.service.ChangeVersionOfBanner(r.Context(), id, version.Version)
+	if err != nil {
+		h.logger.Error("failed to change version of banner ", err)
+		if errors.Is(err, repository.ErrBannerNotFound) {
+			responser.WriteStatus(w, http.StatusNotFound)
+			return
+		}
+		responser.WriteError(w, http.StatusInternalServerError, errors.New("failed to change version of banner"))
+		return
+	}
+
+	responser.WriteStatus(w, http.StatusOK)
 }

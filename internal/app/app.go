@@ -63,7 +63,6 @@ func (a *App) Run() error {
 	rc := redis.NewClient(&redis.Options{
 		Addr:     cfg.RedisAddr,
 		Password: cfg.RedisPassword,
-		DB:       cfg.DB,
 	})
 	defer rc.Close()
 
@@ -83,10 +82,13 @@ func (a *App) Run() error {
 
 	r := mux.NewRouter().PathPrefix("/api").Subrouter()
 	r.Handle("/user_banner", mw.Auth(false, http.HandlerFunc(bannerHandler.GetBanner))).Methods("GET")
+	r.Handle("/banner/{id:[0-9]+}", mw.Auth(true, http.HandlerFunc(bannerHandler.GetBannerVersions))).Methods("GET")
 	r.Handle("/banner", mw.Auth(true, http.HandlerFunc(bannerHandler.GetBannerList))).Methods("GET")
 	r.Handle("/banner", mw.Auth(true, http.HandlerFunc(bannerHandler.AddBanner))).Methods("POST")
 	r.Handle("/banner/{id:[0-9]+}", mw.Auth(true,
 		http.HandlerFunc(bannerHandler.UpdateBanner))).Methods("PATCH")
+	r.Handle("/banner/{id:[0-9]+}", mw.Auth(true,
+		http.HandlerFunc(bannerHandler.ChangeVersionBanner))).Methods("PUT")
 	r.Handle("/banner/{id:[0-9]+}", mw.Auth(true,
 		http.HandlerFunc(bannerHandler.DeleteBanner))).Methods("DELETE")
 	r.HandleFunc("/sign_in", authHandler.SignIn).Methods("POST")

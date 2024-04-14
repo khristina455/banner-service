@@ -11,6 +11,9 @@ type BannerService interface {
 	AddBanner(ctx context.Context, banner *models.BannerPayload) (int, error)
 	UpdateBanner(ctx context.Context, id int, banner *models.BannerPayload) error
 	DeleteBanner(ctx context.Context, id int) error
+	GetCurrentBanner(ctx context.Context, id int) (models.BannerVersion, error)
+	GetOldBanners(ctx context.Context, id int) ([]models.BannerVersion, error)
+	ChangeVersionOfBanner(ctx context.Context, id int, version int) error
 }
 
 type BannerRepository interface {
@@ -20,4 +23,7 @@ type BannerRepository interface {
 	CreateBanner(ctx context.Context, banner *models.BannerPayload) (int, error)
 	UpdateBanner(ctx context.Context, id int, banner *models.BannerPayload) error
 	DeleteBanner(ctx context.Context, id int) error
+	ReadCurrentBannerByID(ctx context.Context, id int) (models.BannerVersion, error)
+	ReadOldVersions(ctx context.Context, id int) ([]models.BannerVersion, error)
+	UpdateVersionOfBanner(ctx context.Context, id int, version int) error
 }
